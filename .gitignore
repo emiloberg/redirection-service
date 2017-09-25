@@ -1,5 +1,5 @@
 node_modules/
 .vscode/
 elm-stuff/
-index.html
+/index.html
 dist/
