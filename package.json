@@ -5,11 +5,18 @@
   "repository": "git@github.com:iZettle/redirection-service.git",
   "license": "MIT",
   "scripts": {
-    "start": "elm-live --debug src/client/Main.elm"
+    "start": "npm-run-all --parallel build:dev:watch serve:dev:watch",
+    "build:dev:watch": "chokidar --initial src/client/**/*.elm -c 'yarn build:dev:client'",
+    "build:dev:client": "elm make src/client/Main.elm --debug --output=dist/client.js",
+    "serve:dev:watch":
+      "nodemon --watch src/server/**/*.js --watch src/client/index.html ./src/server/server.js"
   },
   "dependencies": {
     "chokidar-cli": "^1.2.0",
     "elm": "^0.18.0",
-    "elm-live": "^2.7.5"
+    "elm-live": "^2.7.5",
+    "express": "^4.15.5",
+    "nodemon": "^1.12.1",
+    "yarn-run-all": "^3.1.1"
   }
 }
