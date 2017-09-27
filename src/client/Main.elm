@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Date exposing (Date)
-import Date.Extra.Format as Format exposing (format)
+import Date.Extra.Format as Format exposing (format, isoDateFormat, isoTimeFormat)
 import Date.Extra.Config.Config_en_us exposing (config)
 
 
@@ -120,7 +120,7 @@ update msg model =
 
 dateToString : Date -> String
 dateToString date =
-    format config config.format.dateTime date
+    format config "%Y-%m-%d %H:%M" date
 
 
 ruleToRow : Rule -> Html msg
