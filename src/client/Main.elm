@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Date exposing (Date)
-import Date.Extra.Format as Format exposing (format, isoDateFormat, isoTimeFormat)
+import Date.Extra.Format as Format exposing (format)
 import Date.Extra.Config.Config_en_us exposing (config)
 
 
@@ -134,7 +134,7 @@ dateToString date =
 
 
 ruleToRow : Bool -> Rule -> Html Msg
-ruleToRow isEdit rule =
+ruleToRow shouldBeEditable rule =
     let
         toRow rule =
             tr []
@@ -151,7 +151,7 @@ ruleToRow isEdit rule =
                 ]
 
         toEditRow rule =
-            tr []
+            tr [ class "table-info" ]
                 [ td [] [ input [ value rule.from, placeholder "From" ] [] ]
                 , td [] [ input [ value rule.to, placeholder "To" ] [] ]
                 , td []
@@ -171,7 +171,7 @@ ruleToRow isEdit rule =
                     ]
                 ]
     in
-        if isEdit then
+        if shouldBeEditable then
             toEditRow rule
         else
             toRow rule

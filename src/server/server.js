@@ -1,14 +1,14 @@
 const fs = require("fs")
 const path = require("path")
 const http = require("http")
-// const { postgraphql } = require("postgraphql")
+const { postgraphql } = require("postgraphql")
 // const auth = require("http-auth")
-// const CONFIG = require("./config")
+const CONFIG = require("./config")
 
 const indexHtml = fs.readFileSync(path.join(__dirname, "../client/index.html")).toString()
 const elmJs = fs.readFileSync(path.join(__dirname, "../../dist/client.js")).toString()
 // const mainCss = fs.readFileSync("./src/client/main.css").toString()
-// const graph = postgraphql(CONFIG.DATABASE_URL, CONFIG.DATABASE_NAME, CONFIG.POSTGRAPHQL_OPTIONS)
+const graph = postgraphql(CONFIG.DATABASE_URL, CONFIG.DATABASE_NAME, CONFIG.POSTGRAPHQL_OPTIONS)
 
 // const basic = auth.basic(
 //   {
@@ -46,6 +46,6 @@ http
       }
     }
   )
-  .listen(3000, "0.0.0.0", 511, event => {
-    console.log("Listening on port 3000.")
+  .listen(CONFIG.APP_PORT, "0.0.0.0", 511, event => {
+    console.log(`Listening on port ${CONFIG.APP_PORT}.`)
   })
