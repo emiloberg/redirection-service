@@ -23,8 +23,13 @@ type Variety
     | Temporary
 
 
+type alias RuleId =
+    Int
+
+
 type alias Rule =
-    { from : String
+    { ruleId : RuleId
+    , from : String
     , to : String
     , variety : Variety
     , why : String
@@ -48,11 +53,13 @@ type alias Model =
     { rules : List Rule
     , sortColumn : Column
     , sortDirection : Direction
+    , ruleToEdit : Maybe RuleId
     }
 
 
 type Msg
     = SortByColumn Column
+    | EditRule (Maybe RuleId)
 
 
 type Direction
@@ -117,23 +124,57 @@ update msg model =
                 else
                     ( { model | sortColumn = column, sortDirection = Ascending }, Cmd.none )
 
+            EditRule ruleId ->
+                ( { model | ruleToEdit = ruleId }, Cmd.none )
+
 
 dateToString : Date -> String
 dateToString date =
     format config "%Y-%m-%d %H:%M" date
 
 
-ruleToRow : Rule -> Html msg
-ruleToRow rule =
-    tr []
-        [ td [] [ text rule.from ]
-        , td [] [ text rule.to ]
-        , td [] [ text <| toString <| rule.variety ]
-        , td [] [ text rule.why ]
-        , td [] [ text rule.who ]
-        , td [] [ text <| dateToString <| rule.created ]
-        , td [] [ text <| dateToString <| rule.updated ]
-        ]
+ruleToRow : Bool -> Rule -> Html Msg
+ruleToRow isEdit rule =
+    let
+        toRow rule =
+            tr []
+                [ td [] [ text rule.from ]
+                , td [] [ text rule.to ]
+                , td [] [ text <| toString <| rule.variety ]
+                , td [] [ text rule.why ]
+                , td [] [ text rule.who ]
+                , td [] [ text <| dateToString <| rule.created ]
+                , td [] [ text <| dateToString <| rule.updated ]
+                , td []
+                    [ button [ class "btn btn-outline-warning", onClick <| EditRule (Just rule.ruleId) ] [ text "✏️" ]
+                    ]
+                ]
+
+        toEditRow rule =
+            tr []
+                [ td [] [ input [ value rule.from, placeholder "From" ] [] ]
+                , td [] [ input [ value rule.to, placeholder "To" ] [] ]
+                , td []
+                    [ select [ class "form-control" ]
+                        [ option [ value << toString <| Permanent ] [ text << toString <| Permanent ]
+                        , option [ value << toString <| Temporary ] [ text << toString <| Temporary ]
+                        ]
+                    ]
+                , td [] [ input [ value rule.why, placeholder "Why" ] [] ]
+                , td [] [ text rule.who ]
+                , td [] [ text <| dateToString <| rule.created ]
+                , td [] [ text <| dateToString <| rule.updated ]
+                , td []
+                    [ button [ class "btn btn-outline-warning", onClick <| EditRule Nothing ] [ text "💾" ]
+                    , button [ class "btn btn-outline-warning", onClick <| EditRule Nothing ] [ text "🚫" ]
+                    , button [ class "btn btn-outline-warning", onClick <| EditRule Nothing ] [ text "🗑" ]
+                    ]
+                ]
+    in
+        if isEdit then
+            toEditRow rule
+        else
+            toRow rule
 
 
 view : Model -> Html Msg
@@ -152,6 +193,9 @@ view model =
                 arrow
             else
                 ""
+
+        shouldBeEditable rule =
+            (Maybe.withDefault False (model.ruleToEdit |> Maybe.map (\ruleToEdit -> ruleToEdit == rule.ruleId)))
     in
         table [ class "table" ]
             [ thead []
@@ -163,12 +207,13 @@ view model =
                     , th [ onClick <| SortByColumn Who ] [ text <| "Who" ++ showArrow Who ]
                     , th [ onClick <| SortByColumn Created ] [ text <| "Created" ++ showArrow Created ]
                     , th [ onClick <| SortByColumn Updated ] [ text <| "Updated" ++ showArrow Updated ]
+                    , th [] [ text "Actions" ]
                     ]
                 ]
             , tbody []
                 (model.rules
                     |> sortByColumn model.sortColumn model.sortDirection
-                    |> List.map ruleToRow
+                    |> List.map (\rule -> ruleToRow (shouldBeEditable rule) rule)
                 )
             ]
 
@@ -176,11 +221,28 @@ view model =
 init : ( Model, Cmd Msg )
 init =
     ( { rules =
-            [ Rule "/boll" "/404" Permanent "Because" "me" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
-            , Rule "/apa" "/404" Temporary "asdf" "you" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
+            [ { ruleId = 1
+              , from = "/boll"
+              , to = "/404"
+              , variety = Permanent
+              , why = "Because"
+              , who = "me"
+              , created = (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
+              , updated = (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
+              }
+            , { ruleId = 2
+              , from = "/apa"
+              , to = "/404"
+              , variety = Temporary
+              , why = "asdf"
+              , who = "you"
+              , created = (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
+              , updated = (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
+              }
             ]
       , sortColumn = From
       , sortDirection = Ascending
+      , ruleToEdit = Nothing
       }
     , Cmd.none
     )
