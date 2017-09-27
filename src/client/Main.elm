@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Date exposing (Date)
 import Date.Extra.Format as Format exposing (format)
 import Date.Extra.Config.Config_en_us exposing (config)
@@ -32,14 +33,57 @@ type alias Rule =
     }
 
 
+type Column
+    = FromCol
+    | ToCol
+      --    | VarietyCol
+    | WhyCol
+
+
+
+--    | Who
+--    | Created
+--    | Updated
+
+
 type alias Model =
     { rules : List Rule
+    , sortColumn : Column
     }
 
 
 type Msg
     = Asdf
     | Fdsa
+
+
+sortByColumn : Column -> List Rule -> List Rule
+sortByColumn column rules =
+    let
+        sorter =
+            case column of
+                FromCol ->
+                    .from
+
+                ToCol ->
+                    .to
+
+                --                VarietyCol ->
+                --                    .variety
+                WhyCol ->
+                    .why
+
+        --
+        --                Who ->
+        --                    .who
+        --
+        --                Created ->
+        --                    .created
+        --
+        --                Updated ->
+        --                    .updated
+    in
+        List.sortBy sorter rules
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -72,7 +116,7 @@ ruleToRow rule =
 
 view : Model -> Html Msg
 view model =
-    table []
+    table [ class "table" ]
         [ thead []
             [ tr []
                 [ th [] [ text "From" ]
@@ -85,9 +129,9 @@ view model =
                 ]
             ]
         , tbody []
-            (List.map
-                ruleToRow
-                model.rules
+            (model.rules
+                |> List.sortBy .from
+                |> List.map ruleToRow
             )
         ]
 
@@ -95,8 +139,9 @@ view model =
 init : ( Model, Cmd Msg )
 init =
     ( Model
-        [ Rule "/" "/404" Permanent "Because" "me" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
-        , Rule "/" "/404" Temporary "asdf" "you" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
+        [ Rule "/boll" "/404" Permanent "Because" "me" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
+        , Rule "/apa" "/404" Temporary "asdf" "you" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
         ]
+        FromCol
     , Cmd.none
     )
