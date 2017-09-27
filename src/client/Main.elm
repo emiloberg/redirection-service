@@ -16,9 +16,15 @@ main =
         }
 
 
+type Variety
+    = Permanent
+    | Temporary
+
+
 type alias Rule =
     { from : String
     , to : String
+    , variety : Variety
     , why : String
     , who : String
     , created : Date
@@ -51,23 +57,16 @@ dateToString date =
     format config config.format.dateTime date
 
 
-
--- String.join "-"
---     [ toString (Date.year date)
---     , toString (Date.month date)
---     , toString (Date.day date)
---     ]
-
-
 ruleToRow : Rule -> Html msg
 ruleToRow rule =
     tr []
         [ td [] [ text rule.from ]
         , td [] [ text rule.to ]
+        , td [] [ text <| toString <| rule.variety ]
         , td [] [ text rule.why ]
         , td [] [ text rule.who ]
-        , td [] [ text (dateToString rule.created) ]
-        , td [] [ text (dateToString rule.updated) ]
+        , td [] [ text <| dateToString <| rule.created ]
+        , td [] [ text <| dateToString <| rule.updated ]
         ]
 
 
@@ -78,6 +77,7 @@ view model =
             [ tr []
                 [ th [] [ text "From" ]
                 , th [] [ text "To" ]
+                , th [] [ text "Variety" ]
                 , th [] [ text "Why" ]
                 , th [] [ text "Who" ]
                 , th [] [ text "Created" ]
@@ -95,8 +95,8 @@ view model =
 init : ( Model, Cmd Msg )
 init =
     ( Model
-        [ Rule "/" "/404" "Because" "me" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
-        , Rule "/" "/404" "asdf" "you" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
+        [ Rule "/" "/404" Permanent "Because" "me" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
+        , Rule "/" "/404" Temporary "asdf" "you" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
         ]
     , Cmd.none
     )
