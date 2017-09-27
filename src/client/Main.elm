@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Date exposing (Date)
 import Date.Extra.Format as Format exposing (format)
 import Date.Extra.Config.Config_en_us exposing (config)
@@ -34,66 +35,87 @@ type alias Rule =
 
 
 type Column
-    = FromCol
-    | ToCol
-      --    | VarietyCol
-    | WhyCol
-
-
-
---    | Who
---    | Created
---    | Updated
+    = From
+    | To
+    | Variety
+    | Why
+    | Who
+    | Created
+    | Updated
 
 
 type alias Model =
     { rules : List Rule
     , sortColumn : Column
+    , sortDirection : Direction
     }
 
 
 type Msg
-    = Asdf
-    | Fdsa
+    = SortByColumn Column
 
 
-sortByColumn : Column -> List Rule -> List Rule
-sortByColumn column rules =
+type Direction
+    = Ascending
+    | Descending
+
+
+sortByColumn : Column -> Direction -> List Rule -> List Rule
+sortByColumn column direction rules =
     let
+        sorter : Rule -> String
         sorter =
             case column of
-                FromCol ->
+                From ->
                     .from
 
-                ToCol ->
+                To ->
                     .to
 
-                --                VarietyCol ->
-                --                    .variety
-                WhyCol ->
+                Variety ->
+                    .variety >> toString
+
+                Why ->
                     .why
 
-        --
-        --                Who ->
-        --                    .who
-        --
-        --                Created ->
-        --                    .created
-        --
-        --                Updated ->
-        --                    .updated
+                Who ->
+                    .who
+
+                Created ->
+                    .created >> dateToString
+
+                Updated ->
+                    .updated >> dateToString
+
+        maybeReverse : Direction -> List a -> List a
+        maybeReverse sortDirection =
+            case sortDirection of
+                Descending ->
+                    List.reverse
+
+                Ascending ->
+                    identity
     in
-        List.sortBy sorter rules
+        rules |> List.sortBy sorter |> maybeReverse direction
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        Asdf ->
-            ( model, Cmd.none )
+    let
+        reverseDirection =
+            case model.sortDirection of
+                Ascending ->
+                    Descending
 
-        Fdsa ->
-            ( model, Cmd.none )
+                Descending ->
+                    Ascending
+    in
+        case msg of
+            SortByColumn column ->
+                if column == model.sortColumn then
+                    ( { model | sortDirection = reverseDirection }, Cmd.none )
+                else
+                    ( { model | sortColumn = column, sortDirection = Ascending }, Cmd.none )
 
 
 dateToString : Date -> String
@@ -116,32 +138,49 @@ ruleToRow rule =
 
 view : Model -> Html Msg
 view model =
-    table [ class "table" ]
-        [ thead []
-            [ tr []
-                [ th [] [ text "From" ]
-                , th [] [ text "To" ]
-                , th [] [ text "Variety" ]
-                , th [] [ text "Why" ]
-                , th [] [ text "Who" ]
-                , th [] [ text "Created" ]
-                , th [] [ text "Updated" ]
+    let
+        arrow =
+            case model.sortDirection of
+                Ascending ->
+                    " ↓"
+
+                Descending ->
+                    " ↑"
+
+        showArrow column =
+            if column == model.sortColumn then
+                arrow
+            else
+                ""
+    in
+        table [ class "table" ]
+            [ thead []
+                [ tr []
+                    [ th [ onClick <| SortByColumn From ] [ text <| "From" ++ showArrow From ]
+                    , th [ onClick <| SortByColumn To ] [ text <| "To" ++ showArrow To ]
+                    , th [ onClick <| SortByColumn Variety ] [ text <| "Variety" ++ showArrow Variety ]
+                    , th [ onClick <| SortByColumn Why ] [ text <| "Why" ++ showArrow Why ]
+                    , th [ onClick <| SortByColumn Who ] [ text <| "Who" ++ showArrow Who ]
+                    , th [ onClick <| SortByColumn Created ] [ text <| "Created" ++ showArrow Created ]
+                    , th [ onClick <| SortByColumn Updated ] [ text <| "Updated" ++ showArrow Updated ]
+                    ]
                 ]
+            , tbody []
+                (model.rules
+                    |> sortByColumn model.sortColumn model.sortDirection
+                    |> List.map ruleToRow
+                )
             ]
-        , tbody []
-            (model.rules
-                |> List.sortBy .from
-                |> List.map ruleToRow
-            )
-        ]
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model
-        [ Rule "/boll" "/404" Permanent "Because" "me" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
-        , Rule "/apa" "/404" Temporary "asdf" "you" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
-        ]
-        FromCol
+    ( { rules =
+            [ Rule "/boll" "/404" Permanent "Because" "me" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
+            , Rule "/apa" "/404" Temporary "asdf" "you" (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0)) (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
+            ]
+      , sortColumn = From
+      , sortDirection = Ascending
+      }
     , Cmd.none
     )
