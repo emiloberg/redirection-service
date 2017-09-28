@@ -8,7 +8,7 @@ const CONFIG = require("./config")
 const indexHtml = fs.readFileSync(path.join(__dirname, "../client/index.html")).toString()
 const elmJs = fs.readFileSync(path.join(__dirname, "../../dist/client.js")).toString()
 // const mainCss = fs.readFileSync("./src/client/main.css").toString()
-const graph = postgraphql(CONFIG.DATABASE_URL, CONFIG.DATABASE_NAME, CONFIG.POSTGRAPHQL_OPTIONS)
+const graph = postgraphql(CONFIG.DATABASE_URL, CONFIG.DATABASE_SCHEMA, CONFIG.POSTGRAPHQL_OPTIONS)
 
 // const basic = auth.basic(
 //   {
@@ -40,9 +40,8 @@ http
         //   break
 
         default:
-          res.writeHead(404)
-          res.end()
-        // graph(req, res)
+          graph(req, res)
+          break
       }
     }
   )
