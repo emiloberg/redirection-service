@@ -12,7 +12,7 @@ create table rules (
   updated timestamp not null default now()
 );
 
-comment on table rules is 'List of redirection rules.';
+comment on table rules is 'A redirection rule.';
 comment on column rules.id is 'Primary ID.';
 comment on column rules.from is 'Url slug or regex to match.';
 comment on column rules.to is 'The destination. Where to redirect to.';
@@ -22,5 +22,16 @@ comment on column rules.who is 'Who made the rule.';
 comment on column rules.is_regex is 'Should the "from"-column be treated as a regex?';
 comment on column rules.created is 'The time of original creation.';
 comment on column rules.updated is 'The time of the latest modification of the rule.';
+
+create table admins (
+  id serial primary key,
+  email text not null,
+  created timestamp not null default now(),
+  updated timestamp not null default now()
+);
+
+comment on table admins is 'A user with additional privileges.';
+comment on column admins.id is 'Primary ID.';
+comment on column admins.email is 'The email of the admin user.';
 
 commit;
