@@ -10,6 +10,7 @@ const bodyParser = require("koa-bodyparser")
 const CONFIG = require("./config")
 const Koa = require("koa")
 const Router = require("koa-router")
+const db = require("./database.js")()
 
 const app = new Koa()
 const router = new Router()
@@ -19,6 +20,14 @@ const elmJs = fs.readFileSync(path.join(__dirname, "../../dist/client.js")).toSt
 // const mainCss = fs.readFileSync("./src/client/main.css").toString()
 
 const graph = postgraphql(CONFIG.DATABASE_URL, CONFIG.DATABASE_SCHEMA, CONFIG.POSTGRAPHQL_OPTIONS)
+
+db
+  .then(client => {
+    client.query("SELECT $1::text as message", ["Hello world!"]).then(res => console.log(res))
+  })
+  .catch(err => {
+    console.error(err)
+  })
 
 passport.use(
   new GoogleStrategy(

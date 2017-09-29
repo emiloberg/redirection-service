@@ -26,6 +26,7 @@
     "elm-live": "^2.7.5",
     "express": "^4.15.5",
     "find-my-way": "^1.6.0",
+    "graphql": "^0.11.5",
     "koa": "^2.3.0",
     "koa-bodyparser": "^4.2.0",
     "koa-morgan": "^1.0.1",
@@ -36,6 +37,8 @@
     "nodemon": "^1.12.1",
     "passport": "^0.4.0",
     "passport-google-oauth20": "^1.0.0",
+    "pg": "^7.3.0",
+    "pg-pool": "^2.0.3",
     "postgraphql": "^3.5.0",
     "rimraf": "^2.6.2",
     "yarn-run-all": "^3.1.1"
