@@ -3,3 +3,4 @@ node_modules/
 elm-stuff/
 /index.html
 dist/
+yarn-error.log
