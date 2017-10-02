@@ -18,6 +18,9 @@ const indexHtml = fs.readFileSync(path.join(__dirname, "../client/index.html")).
 const elmJs = fs.readFileSync(path.join(__dirname, "../../dist/client.js")).toString()
 // const mainCss = fs.readFileSync("./src/client/main.css").toString()
 
+const LOGIN_URL = "/login"
+const LOGIN_CALLBACK_URL = "/login/callback"
+
 const graph = postgraphql(CONFIG.DATABASE_URL, CONFIG.DATABASE_SCHEMA, CONFIG.POSTGRAPHQL_OPTIONS)
 
 passport.use(
@@ -34,23 +37,15 @@ passport.use(
       }
 
       done(null, profile)
-      // User.findOrCreate({ googleId: profile.id }, function(err, user) {
-      //   return done(err, user)
-      // })
     }
   )
 )
 
 passport.serializeUser(function(user, done) {
-  done(null, user.id)
+  done(null, user)
 })
 
-passport.deserializeUser(function(id, done) {
-  done(null, id)
-  // User.findById(id, function(err, user) {
-  //   done(err, user)
-  // })
-})
+passport.deserializeUser((profile, done) => done(null, profile))
 
 router.get("/client.js", async ctx => {
   ctx.body = elmJs
@@ -62,19 +57,15 @@ router.get("/client.js", async ctx => {
 //   res.end(mainCss)
 // })
 
-router.get("/login", passport.authenticate("google", { scope: ["profile", "email"] }))
+router.get(LOGIN_URL, passport.authenticate("google", { scope: ["profile", "email"] }))
 
 router.get(
-  "/login/callback",
+  LOGIN_CALLBACK_URL,
   passport.authenticate("google", {
-    failureRedirect: "/login",
+    failureRedirect: LOGIN_URL,
     scope: ["profile", "email"]
   }),
-  async ctx => {
-    console.log("aSDFASDF")
-    // Successful authentication, redirect home.
-    ctx.redirect("/")
-  }
+  async ctx => ctx.redirect("/")
 )
 
 router.get("/", async ctx => {
@@ -87,6 +78,16 @@ app.keys = [CONFIG.SESSION_SECRET]
 app
   .use(passport.initialize())
   .use(passport.session())
+
+app.use(async (ctx, next) => {
+  if (ctx.isAuthenticated() || ctx.url.startsWith(LOGIN_URL)) {
+    await next()
+  } else {
+    await ctx.redirect(LOGIN_URL)
+  }
+})
+
+app
   .use(morgan("dev"))
   .use(graph)
   .use(router.routes())
