@@ -1,11 +1,15 @@
 module Main exposing (..)
 
+import Graph
+import Http
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Date exposing (Date)
 import Date.Extra.Format as Format exposing (format)
 import Date.Extra.Config.Config_en_us exposing (config)
+import Json.Encode as Encode
+import Json.Decode as Decode exposing (Decoder)
 
 
 main : Program Never Model Msg
@@ -60,6 +64,7 @@ type alias Model =
 type Msg
     = SortByColumn Column
     | EditRule (Maybe RuleId)
+    | FetchedRules (Result Http.Error (List Rule))
 
 
 type Direction
@@ -126,6 +131,12 @@ update msg model =
 
             EditRule ruleId ->
                 ( { model | ruleToEdit = ruleId }, Cmd.none )
+
+            FetchedRules (Err error) ->
+                Debug.crash (toString error)
+
+            FetchedRules (Ok rules) ->
+                ( { model | rules = rules }, Cmd.none )
 
 
 dateToString : Date -> String
@@ -220,29 +231,84 @@ view model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { rules =
-            [ { ruleId = 1
-              , from = "/boll"
-              , to = "/404"
-              , variety = Permanent
-              , why = "Because"
-              , who = "me"
-              , created = (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
-              , updated = (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
-              }
-            , { ruleId = 2
-              , from = "/apa"
-              , to = "/404"
-              , variety = Temporary
-              , why = "asdf"
-              , who = "you"
-              , created = (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
-              , updated = (Date.fromString "2016-01-01" |> Result.withDefault (Date.fromTime 0))
-              }
-            ]
+    ( { rules = []
       , sortColumn = From
       , sortDirection = Ascending
       , ruleToEdit = Nothing
       }
-    , Cmd.none
+    , Cmd.batch
+        [ Http.send FetchedRules getRules
+        ]
     )
+
+
+rulesDecoder : Decoder (List Rule)
+rulesDecoder =
+    Decode.at [ "data", "allRules", "edges" ] <| Decode.list (Decode.field "node" ruleDecoder)
+
+
+varietyDecoder : Decoder Variety
+varietyDecoder =
+    Decode.map
+        (\str ->
+            if str == "Temporary" then
+                Temporary
+            else if str == "Permanent" then
+                Permanent
+            else
+                -- Todo fix me
+                Temporary
+        )
+        Decode.string
+
+
+dateDecoder : Decoder Date
+dateDecoder =
+    let
+        convert : String -> Decoder Date
+        convert raw =
+            case Date.fromString raw of
+                Ok date ->
+                    Decode.succeed date
+
+                Err error ->
+                    Decode.fail error
+    in
+        Decode.string |> Decode.andThen convert
+
+
+ruleDecoder : Decoder Rule
+ruleDecoder =
+    Decode.map8 Rule
+        (Decode.field "id" Decode.int)
+        (Decode.field "from" Decode.string)
+        (Decode.field "to" Decode.string)
+        (Decode.field "kind" varietyDecoder)
+        (Decode.field "why" Decode.string)
+        (Decode.field "who" Decode.string)
+        (Decode.field "created" dateDecoder)
+        (Decode.field "updated" dateDecoder)
+
+
+getRules : Http.Request (List Rule)
+getRules =
+    Graph.query
+        """
+          {
+            allRules {
+              edges {
+                node {
+                  id,
+                  from,
+                  to,
+                  kind,
+                  why,
+                  who,
+                  created,
+                  updated
+                }
+              }
+            }
+          }
+        """
+        rulesDecoder
