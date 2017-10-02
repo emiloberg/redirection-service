@@ -10,6 +10,7 @@ import Date.Extra.Format as Format exposing (format)
 import Date.Extra.Config.Config_en_us exposing (config)
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline
 
 
 main : Program Never Model Msg
@@ -38,6 +39,7 @@ type alias Rule =
     , variety : Variety
     , why : String
     , who : String
+    , isRegex : Bool
     , created : Date
     , updated : Date
     }
@@ -46,6 +48,7 @@ type alias Rule =
 type Column
     = From
     | To
+    | IsRegex
     | Variety
     | Why
     | Who
@@ -83,6 +86,9 @@ sortByColumn column direction rules =
 
                 To ->
                     .to
+
+                IsRegex ->
+                    .isRegex >> toString
 
                 Variety ->
                     .variety >> toString
@@ -151,6 +157,7 @@ ruleToRow shouldBeEditable rule =
             tr []
                 [ td [] [ text rule.from ]
                 , td [] [ text rule.to ]
+                , td [] [ input [ type_ "checkbox", disabled True, checked rule.isRegex ] [] ]
                 , td [] [ text <| toString <| rule.variety ]
                 , td [] [ text rule.why ]
                 , td [] [ text rule.who ]
@@ -165,6 +172,7 @@ ruleToRow shouldBeEditable rule =
             tr [ class "table-info" ]
                 [ td [] [ input [ value rule.from, placeholder "From" ] [] ]
                 , td [] [ input [ value rule.to, placeholder "To" ] [] ]
+                , td [] [ input [ type_ "checkbox", checked rule.isRegex ] [] ]
                 , td []
                     [ select [ class "form-control" ]
                         [ option [ value << toString <| Permanent ] [ text << toString <| Permanent ]
@@ -213,6 +221,7 @@ view model =
                 [ tr []
                     [ th [ onClick <| SortByColumn From ] [ text <| "From" ++ showArrow From ]
                     , th [ onClick <| SortByColumn To ] [ text <| "To" ++ showArrow To ]
+                    , th [ onClick <| SortByColumn IsRegex ] [ text <| "Pattern" ++ showArrow IsRegex ]
                     , th [ onClick <| SortByColumn Variety ] [ text <| "Variety" ++ showArrow Variety ]
                     , th [ onClick <| SortByColumn Why ] [ text <| "Why" ++ showArrow Why ]
                     , th [ onClick <| SortByColumn Who ] [ text <| "Who" ++ showArrow Who ]
@@ -279,15 +288,16 @@ dateDecoder =
 
 ruleDecoder : Decoder Rule
 ruleDecoder =
-    Decode.map8 Rule
-        (Decode.field "id" Decode.int)
-        (Decode.field "from" Decode.string)
-        (Decode.field "to" Decode.string)
-        (Decode.field "kind" varietyDecoder)
-        (Decode.field "why" Decode.string)
-        (Decode.field "who" Decode.string)
-        (Decode.field "created" dateDecoder)
-        (Decode.field "updated" dateDecoder)
+    Json.Decode.Pipeline.decode Rule
+        |> Json.Decode.Pipeline.required "id" Decode.int
+        |> Json.Decode.Pipeline.required "from" Decode.string
+        |> Json.Decode.Pipeline.required "to" Decode.string
+        |> Json.Decode.Pipeline.required "kind" varietyDecoder
+        |> Json.Decode.Pipeline.required "why" Decode.string
+        |> Json.Decode.Pipeline.required "who" Decode.string
+        |> Json.Decode.Pipeline.required "isRegex" Decode.bool
+        |> Json.Decode.Pipeline.required "created" dateDecoder
+        |> Json.Decode.Pipeline.required "updated" dateDecoder
 
 
 getRules : Http.Request (List Rule)
@@ -304,6 +314,7 @@ getRules =
                   kind,
                   why,
                   who,
+                  isRegex,
                   created,
                   updated
                 }
