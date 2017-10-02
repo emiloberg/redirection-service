@@ -24,23 +24,23 @@ comment on column rules.created is 'The time of original creation.';
 comment on column rules.updated is 'The time of the latest modification of the rule.';
 
 
-create table users (
-  id serial primary key,
-  email text not null unique,
-  google_id text not null unique,
-  firstname text not null,
-  lastname text not null,
-  is_admin boolean not null default false,
-  created timestamp not null default now()
-);
-
-comment on table users is 'A user of the system.';
-comment on column users.id is 'Primary ID.';
-comment on column users.email is 'The email used to log in with.';
-comment on column users.google_id is 'The corresponding user id in Google apis.';
-comment on column users.firstname is 'The given name.';
-comment on column users.lastname is 'The family name.';
-comment on column users.is_admin is 'Whether elevated privileges are granted to the user.';
-comment on column users.created is 'The time of original creation.';
+--create table users (
+--  id serial primary key,
+--  email text not null unique,
+--  google_id text not null unique,
+--  firstname text not null,
+--  lastname text not null,
+--  is_admin boolean not null default false,
+--  created timestamp not null default now()
+--);
+--
+--comment on table users is 'A user of the system.';
+--comment on column users.id is 'Primary ID.';
+--comment on column users.email is 'The email used to log in with.';
+--comment on column users.google_id is 'The corresponding user id in Google apis.';
+--comment on column users.firstname is 'The given name.';
+--comment on column users.lastname is 'The family name.';
+--comment on column users.is_admin is 'Whether elevated privileges are granted to the user.';
+--comment on column users.created is 'The time of original creation.';
 
 commit;
