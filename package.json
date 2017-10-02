@@ -13,9 +13,9 @@
     "db:reset": "yarn db:drop && yarn db:create && yarn db:create-schema",
     "db:create": "createdb redirection_service",
     "db:create-schema": "psql redirection_service < src/server/schema.sql",
-    "db:seed": "echo 'Unimplemented' #psql redirection_service < src/server/seeds.sql",
+    "db:seed": "psql redirection_service < src/server/seeds.sql",
     "db:drop": "dropdb --if-exists redirection_service",
-    "db:recreate": "yarn db:drop && yarn db:create && yarn db:create-schema"
+    "db:recreate": "yarn db:drop && yarn db:create && yarn db:create-schema && yarn db:seed"
   },
   "dependencies": {
     "chokidar-cli": "^1.2.0",
