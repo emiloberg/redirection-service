@@ -11,6 +11,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline
 import Rule exposing (..)
+import Flash exposing (..)
 import Time
 import Task
 import Process
@@ -35,11 +36,6 @@ type Column
     | Who
     | Created
     | Updated
-
-
-type Flash
-    = Success String
-    | Error String
 
 
 type alias Model =
@@ -76,8 +72,8 @@ delay time msg =
         |> Task.perform (\_ -> msg)
 
 
-setAlert : Model -> Flash -> ( Model, Cmd Msg )
-setAlert model flash =
+setFlash : Model -> Flash -> ( Model, Cmd Msg )
+setFlash model flash =
     { model | flash = Just flash } ! [ delay (Time.second * 5) HideFlash ]
 
 
@@ -167,10 +163,10 @@ update msg model =
             ResultAddRule result ->
                 case result of
                     Err msg ->
-                        setAlert model <| Error "Error adding rule."
+                        setFlash model <| Error "Error adding rule."
 
                     Ok rule ->
-                        setAlert
+                        setFlash
                             { model
                                 | rules = rule :: model.rules
                                 , ruleToAdd = MutationRule "" "" Temporary "" "" False
@@ -233,17 +229,6 @@ viewRuleTable model initialRows =
 view : Model -> Html Msg
 view model =
     let
-        flash =
-            case model.flash of
-                Nothing ->
-                    text ""
-
-                Just (Success flashMessage) ->
-                    div [ class "alert alert-success" ] [ text flashMessage ]
-
-                Just (Error flashMessage) ->
-                    div [ class "alert alert-danger" ] [ text flashMessage ]
-
         editRows =
             if model.showAddRule then
                 [ viewAddRuleRow CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
@@ -252,7 +237,7 @@ view model =
     in
         div []
             [ button [ onClick (SetShowAddRule (not model.showAddRule)) ] [ text "Add" ]
-            , flash
+            , viewMaybeFlash model.flash
             , viewRuleTable model editRows
             ]
 
