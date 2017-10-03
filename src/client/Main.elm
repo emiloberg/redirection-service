@@ -48,10 +48,11 @@ type Msg
     = SortByColumn Column
     | EditRule (Maybe RuleId)
     | FetchedRules (Result Http.Error (List Rule))
-    | AddRule
+    | RequestAddRule MutationRule
     | CancelAddRule
     | SetShowAddRule Bool
     | UpdateAddRule MutationRule
+    | ResultAddRule (Result Http.Error Rule)
 
 
 type Direction
@@ -128,8 +129,10 @@ update msg model =
             FetchedRules (Ok rules) ->
                 ( { model | rules = rules }, Cmd.none )
 
-            AddRule ->
-                ( model, Cmd.none )
+            RequestAddRule rule ->
+                ( model
+                , Http.send ResultAddRule <| addRule rule
+                )
 
             CancelAddRule ->
                 ( { model | showAddRule = False }, Cmd.none )
@@ -139,6 +142,18 @@ update msg model =
 
             UpdateAddRule mutationRule ->
                 ( { model | ruleToAdd = mutationRule }, Cmd.none )
+
+            ResultAddRule result ->
+                case result of
+                    Err msg ->
+                        Debug.crash <| toString msg
+
+                    Ok rule ->
+                        ( { model | rules = rule :: model.rules, ruleToAdd = MutationRule "" "" Temporary "" "" False, showAddRule = False }, Cmd.none )
+
+
+
+-- Todo empty input fields here
 
 
 viewRuleTable : Model -> List (Html Msg) -> Html Msg
@@ -190,7 +205,7 @@ view model =
     let
         editRows =
             if model.showAddRule then
-                [ viewAddRuleRow CancelAddRule AddRule UpdateAddRule model.ruleToAdd ]
+                [ viewAddRuleRow CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
             else
                 []
     in
@@ -207,7 +222,7 @@ init =
       , sortDirection = Ascending
       , ruleToEdit = Nothing
       , ruleToAdd = MutationRule "" "" Temporary "" "" False
-      , showAddRule = False
+      , showAddRule = True
       }
     , Cmd.batch
         [ Http.send FetchedRules getRules

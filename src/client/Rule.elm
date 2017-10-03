@@ -66,7 +66,7 @@ dateToString date =
 -- EditRule Nothing
 
 
-viewAddRuleRow : msg -> msg -> (MutationRule -> msg) -> MutationRule -> Html msg
+viewAddRuleRow : msg -> (MutationRule -> msg) -> (MutationRule -> msg) -> MutationRule -> Html msg
 viewAddRuleRow cancelMessage saveMessage updateMessage rule =
     let
         updateFrom value =
@@ -100,7 +100,7 @@ viewAddRuleRow cancelMessage saveMessage updateMessage rule =
             , td [] []
             , td [] []
             , td []
-                [ button [ class "btn btn-outline-warning", onClick <| saveMessage ] [ text "💾" ]
+                [ button [ class "btn btn-outline-warning", onClick <| saveMessage rule ] [ text "💾" ]
                 , button [ class "btn btn-outline-warning", onClick <| cancelMessage ] [ text "🚫" ]
                 ]
             ]
@@ -215,3 +215,36 @@ getRules =
           }
         """
         rulesDecoder
+
+
+addRule : MutationRule -> Http.Request Rule
+addRule mutationRule =
+    Graph.queryWithVars
+        """
+          mutation CreateRule($from: String!, $to: String!, $kind: String!, $why: String!, $who: String!, $isRegex: Boolean!) {
+            createRule(input: {rule: {from: $from, to: $to, kind: $kind, why: $why, who: $who, isRegex: $isRegex}}) {
+              rule {
+                id
+                from
+                to
+                kind
+                why
+                who
+                isRegex
+                created
+                updated
+              }
+            }
+          }
+        """
+        [ ( "from", Encode.string mutationRule.from )
+        , ( "to", Encode.string mutationRule.to )
+        , ( "kind", Encode.string (toString mutationRule.variety) )
+        , ( "why", Encode.string mutationRule.why )
+        , ( "who", Encode.string "not@real.user" ) --todo change me
+        , ( "isRegex", Encode.bool mutationRule.isRegex )
+        ]
+        (Decode.at
+            [ "data", "createRule", "rule" ]
+            ruleDecoder
+        )
