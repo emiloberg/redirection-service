@@ -34,6 +34,11 @@ type Column
     | Updated
 
 
+type Flash
+    = Success String
+    | Error String
+
+
 type alias Model =
     { rules : List Rule
     , sortColumn : Column
@@ -41,6 +46,7 @@ type alias Model =
     , ruleToEdit : Maybe RuleId
     , ruleToAdd : MutationRule
     , showAddRule : Bool
+    , flash : Maybe Flash
     }
 
 
@@ -146,10 +152,21 @@ update msg model =
             ResultAddRule result ->
                 case result of
                     Err msg ->
-                        Debug.crash <| toString msg
+                        ( { model
+                            | flash = Just (Error <| "Error adding rule")
+                          }
+                        , Cmd.none
+                        )
 
                     Ok rule ->
-                        ( { model | rules = rule :: model.rules, ruleToAdd = MutationRule "" "" Temporary "" "" False, showAddRule = False }, Cmd.none )
+                        ( { model
+                            | rules = rule :: model.rules
+                            , ruleToAdd = MutationRule "" "" Temporary "" "" False
+                            , showAddRule = False
+                            , flash = Just (Success <| "Added rule for \"" ++ rule.from ++ "\"")
+                          }
+                        , Cmd.none
+                        )
 
 
 
@@ -203,6 +220,17 @@ viewRuleTable model initialRows =
 view : Model -> Html Msg
 view model =
     let
+        flash =
+            case model.flash of
+                Nothing ->
+                    text ""
+
+                Just (Success flashMessage) ->
+                    div [ class "alert alert-success" ] [ text flashMessage ]
+
+                Just (Error flashMessage) ->
+                    div [ class "alert alert-danger" ] [ text flashMessage ]
+
         editRows =
             if model.showAddRule then
                 [ viewAddRuleRow CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
@@ -211,6 +239,7 @@ view model =
     in
         div []
             [ button [ onClick (SetShowAddRule (not model.showAddRule)) ] [ text "Add" ]
+            , flash
             , viewRuleTable model editRows
             ]
 
@@ -223,6 +252,7 @@ init =
       , ruleToEdit = Nothing
       , ruleToAdd = MutationRule "" "" Temporary "" "" False
       , showAddRule = True
+      , flash = Nothing
       }
     , Cmd.batch
         [ Http.send FetchedRules getRules
