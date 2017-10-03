@@ -11,6 +11,8 @@ none =
 
 type Flash
     = Success String
+    | Info String
+    | Warn String
     | Error String
 
 
@@ -19,6 +21,12 @@ viewFlash flash =
     case flash of
         Success flashMessage ->
             div [ class "alert alert-success" ] [ text flashMessage ]
+
+        Info flashMessage ->
+            div [ class "alert alert-info" ] [ text flashMessage ]
+
+        Warn flashMessage ->
+            div [ class "alert alert-warning" ] [ text flashMessage ]
 
         Error flashMessage ->
             div [ class "alert alert-danger" ] [ text flashMessage ]

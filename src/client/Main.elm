@@ -169,7 +169,7 @@ update msg model =
                         )
 
                     Err errorType ->
-                        setFlash model <| Error (humanReadableRuleValidationError errorType)
+                        setFlash model <| Warn (humanReadableRuleValidationError errorType)
 
             CancelAddRule ->
                 ( { model | showAddRule = False }, Cmd.none )
@@ -256,8 +256,8 @@ view model =
                 []
     in
         div []
-            [ button [ onClick (SetShowAddRule (not model.showAddRule)) ] [ text "Add" ]
-            , viewMaybeFlash model.flash
+            [ viewMaybeFlash model.flash
+            , button [ onClick (SetShowAddRule (not model.showAddRule)) ] [ text "Add" ]
             , viewRuleTable model editRows
             ]
 
