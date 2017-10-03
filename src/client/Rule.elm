@@ -12,6 +12,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline
 import Debug
+import Result exposing (andThen)
 
 
 type Variety
@@ -61,9 +62,43 @@ dateToString date =
     format config "%Y-%m-%d %H:%M" date
 
 
+resultToBool : Result a b -> Bool
+resultToBool result =
+    case result of
+        Ok value ->
+            True
+
+        Err value ->
+            False
+
+
 
 -- EditRule (Just rule.ruleId)
 -- EditRule Nothing
+
+
+type RuleValidationError
+    = FromIsEmpty
+    | ToIsEmpty
+    | WhyIsEmpty
+
+
+validateRule : MutationRule -> Result RuleValidationError MutationRule
+validateRule rule =
+    let
+        validate validationError isValid rule =
+            if (isValid rule) then
+                Ok rule
+            else
+                Err validationError
+
+        notEmpty =
+            String.isEmpty >> not
+    in
+        Ok rule
+            |> andThen (validate FromIsEmpty (.from >> notEmpty))
+            |> andThen (validate ToIsEmpty (.to >> notEmpty))
+            |> andThen (validate WhyIsEmpty (.why >> notEmpty))
 
 
 viewAddRuleRow : msg -> (MutationRule -> msg) -> (MutationRule -> msg) -> MutationRule -> Html msg

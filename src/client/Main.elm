@@ -43,7 +43,9 @@ type alias Model =
     , sortColumn : Column
     , sortDirection : Direction
     , ruleToEdit : Maybe RuleId
+    , ruleToEditIsValid : Bool
     , ruleToAdd : MutationRule
+    , ruleToAddIsValid : Bool
     , showAddRule : Bool
     , flash : Maybe Flash
     }
@@ -75,6 +77,19 @@ delay time msg =
 setFlash : Model -> Flash -> ( Model, Cmd Msg )
 setFlash model flash =
     { model | flash = Just flash } ! [ delay (Time.second * 5) HideFlash ]
+
+
+humanReadableRuleValidationError : RuleValidationError -> String
+humanReadableRuleValidationError error =
+    case error of
+        FromIsEmpty ->
+            "Please specify which path(s) should be redirected."
+
+        ToIsEmpty ->
+            "Please specify where the request should be routed."
+
+        WhyIsEmpty ->
+            "Please record why the rule is needed, for posterity."
 
 
 sortByColumn : Column -> Direction -> List Rule -> List Rule
@@ -147,9 +162,14 @@ update msg model =
                 ( { model | rules = rules }, Cmd.none )
 
             RequestAddRule rule ->
-                ( model
-                , Http.send ResultAddRule <| addRule rule
-                )
+                case validateRule rule of
+                    Ok rule ->
+                        ( model
+                        , Http.send ResultAddRule <| addRule rule
+                        )
+
+                    Err errorType ->
+                        setFlash model <| Error (humanReadableRuleValidationError errorType)
 
             CancelAddRule ->
                 ( { model | showAddRule = False }, Cmd.none )
@@ -248,7 +268,9 @@ init =
       , sortColumn = From
       , sortDirection = Ascending
       , ruleToEdit = Nothing
+      , ruleToEditIsValid = False
       , ruleToAdd = MutationRule "" "" Temporary "" "" False
+      , ruleToAddIsValid = False
       , showAddRule = True
       , flash = Nothing
       }
