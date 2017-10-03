@@ -11,6 +11,9 @@ import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline
 import Rule exposing (..)
+import Time
+import Task
+import Process
 
 
 main : Program Never Model Msg
@@ -59,11 +62,23 @@ type Msg
     | SetShowAddRule Bool
     | UpdateAddRule MutationRule
     | ResultAddRule (Result Http.Error Rule)
+    | HideFlash
 
 
 type Direction
     = Ascending
     | Descending
+
+
+delay : Time.Time -> msg -> Cmd msg
+delay time msg =
+    Process.sleep time
+        |> Task.perform (\_ -> msg)
+
+
+setAlert : Model -> Flash -> ( Model, Cmd Msg )
+setAlert model flash =
+    { model | flash = Just flash } ! [ delay (Time.second * 5) HideFlash ]
 
 
 sortByColumn : Column -> Direction -> List Rule -> List Rule
@@ -152,21 +167,19 @@ update msg model =
             ResultAddRule result ->
                 case result of
                     Err msg ->
-                        ( { model
-                            | flash = Just (Error <| "Error adding rule")
-                          }
-                        , Cmd.none
-                        )
+                        setAlert model <| Error "Error adding rule."
 
                     Ok rule ->
-                        ( { model
-                            | rules = rule :: model.rules
-                            , ruleToAdd = MutationRule "" "" Temporary "" "" False
-                            , showAddRule = False
-                            , flash = Just (Success <| "Added rule for \"" ++ rule.from ++ "\"")
-                          }
-                        , Cmd.none
-                        )
+                        setAlert
+                            { model
+                                | rules = rule :: model.rules
+                                , ruleToAdd = MutationRule "" "" Temporary "" "" False
+                                , showAddRule = False
+                            }
+                            (Success <| "Added rule for \"" ++ rule.from ++ "\"")
+
+            HideFlash ->
+                ( { model | flash = Nothing }, Cmd.none )
 
 
 
