@@ -39,6 +39,8 @@ type alias Model =
     , sortColumn : Column
     , sortDirection : Direction
     , ruleToEdit : Maybe RuleId
+    , ruleToAdd : MutationRule
+    , showAddRule : Bool
     }
 
 
@@ -46,6 +48,10 @@ type Msg
     = SortByColumn Column
     | EditRule (Maybe RuleId)
     | FetchedRules (Result Http.Error (List Rule))
+    | AddRule
+    | CancelAddRule
+    | SetShowAddRule Bool
+    | UpdateAddRule MutationRule
 
 
 type Direction
@@ -122,9 +128,21 @@ update msg model =
             FetchedRules (Ok rules) ->
                 ( { model | rules = rules }, Cmd.none )
 
+            AddRule ->
+                ( model, Cmd.none )
 
-view : Model -> Html Msg
-view model =
+            CancelAddRule ->
+                ( { model | showAddRule = False }, Cmd.none )
+
+            SetShowAddRule value ->
+                ( { model | showAddRule = value }, Cmd.none )
+
+            UpdateAddRule mutationRule ->
+                ( { model | ruleToAdd = mutationRule }, Cmd.none )
+
+
+viewRuleTable : Model -> List (Html Msg) -> Html Msg
+viewRuleTable model initialRows =
     let
         arrow =
             case model.sortDirection of
@@ -142,6 +160,12 @@ view model =
 
         shouldBeEditable rule =
             (Maybe.withDefault False (model.ruleToEdit |> Maybe.map (\ruleToEdit -> ruleToEdit == rule.ruleId)))
+
+        ruleRows =
+            model.rules
+                |> sortByColumn model.sortColumn model.sortDirection
+                |> List.map
+                    (\rule -> ruleToRow (shouldBeEditable rule) (EditRule (Just rule.ruleId)) (EditRule Nothing) rule)
     in
         table [ class "table" ]
             [ thead []
@@ -157,11 +181,22 @@ view model =
                     , th [] [ text "Actions" ]
                     ]
                 ]
-            , tbody []
-                (model.rules
-                    |> sortByColumn model.sortColumn model.sortDirection
-                    |> List.map (\rule -> ruleToRow (shouldBeEditable rule) (EditRule (Just rule.ruleId)) (EditRule Nothing) rule)
-                )
+            , tbody [] (initialRows ++ ruleRows)
+            ]
+
+
+view : Model -> Html Msg
+view model =
+    let
+        editRows =
+            if model.showAddRule then
+                [ viewAddRuleRow CancelAddRule AddRule UpdateAddRule model.ruleToAdd ]
+            else
+                []
+    in
+        div []
+            [ button [ onClick (SetShowAddRule (not model.showAddRule)) ] [ text "Add" ]
+            , viewRuleTable model editRows
             ]
 
 
@@ -171,6 +206,8 @@ init =
       , sortColumn = From
       , sortDirection = Ascending
       , ruleToEdit = Nothing
+      , ruleToAdd = MutationRule "" "" Temporary "" "" False
+      , showAddRule = False
       }
     , Cmd.batch
         [ Http.send FetchedRules getRules
