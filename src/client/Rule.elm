@@ -13,6 +13,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline
 import Debug
 import Result exposing (andThen)
+import Regex exposing (contains, regex)
 
 
 type Variety
@@ -79,6 +80,7 @@ resultToBool result =
 
 type RuleValidationError
     = FromIsEmpty
+    | FromIsNotAPath
     | ToIsEmpty
     | WhyIsEmpty
 
@@ -92,13 +94,14 @@ validateRule rule =
             else
                 Err validationError
 
-        notEmpty =
-            String.isEmpty >> not
+        isPath =
+            contains <| regex "^(\\/[^\\s\\/]+)+$"
     in
         Ok rule
-            |> andThen (validate FromIsEmpty (.from >> notEmpty))
-            |> andThen (validate ToIsEmpty (.to >> notEmpty))
-            |> andThen (validate WhyIsEmpty (.why >> notEmpty))
+            |> andThen (validate FromIsEmpty (.from >> String.isEmpty >> not))
+            |> andThen (validate FromIsNotAPath (.from >> isPath))
+            |> andThen (validate ToIsEmpty (.to >> String.isEmpty >> not))
+            |> andThen (validate WhyIsEmpty (.why >> String.isEmpty >> not))
 
 
 viewAddRuleRow : msg -> (MutationRule -> msg) -> (MutationRule -> msg) -> MutationRule -> Html msg

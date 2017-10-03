@@ -91,6 +91,9 @@ humanReadableRuleValidationError error =
         WhyIsEmpty ->
             "Please record why the rule is needed, for posterity."
 
+        FromIsNotAPath ->
+            "\"From\" needs to be a valid path e.g \"/some/path\"."
+
 
 sortByColumn : Column -> Direction -> List Rule -> List Rule
 sortByColumn column direction rules =
