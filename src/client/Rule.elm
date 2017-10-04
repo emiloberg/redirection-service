@@ -177,8 +177,8 @@ viewRuleRow startEdit rule =
         ]
 
 
-viewRuleEditRow : msg -> (Rule -> msg) -> msg -> Rule -> Html msg
-viewRuleEditRow cancelEdit updateRule requestUpdateRule rule =
+viewRuleEditRow : msg -> (Rule -> msg) -> msg -> msg -> Rule -> Html msg
+viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
     let
         updateFrom value =
             updateRule { rule | from = value }
@@ -213,7 +213,7 @@ viewRuleEditRow cancelEdit updateRule requestUpdateRule rule =
             , td []
                 [ button [ class "btn btn-outline-warning", onClick <| requestUpdateRule ] [ text "💾" ]
                 , button [ class "btn btn-outline-warning", onClick <| cancelEdit ] [ text "🚫" ]
-                , button [ class "btn btn-outline-warning", onClick <| cancelEdit ] [ text "🗑" ] -- Todo implement me
+                , button [ class "btn btn-outline-warning", onClick <| deleteRuleMsg ] [ text "🗑" ] -- Todo implement me
                 ]
             ]
 
@@ -296,3 +296,22 @@ updateRule rule =
         Http.post ("/rules/" ++ (toString rule.ruleId))
             jsonBody
             ruleDecoder
+
+
+deleteRule : RuleId -> Http.Request Rule
+deleteRule ruleId =
+    Http.request
+        { method = "DELETE"
+        , headers = []
+        , url = "/rules/" ++ (toString ruleId)
+        , body = Http.emptyBody
+        , expect = Http.expectJson ruleDecoder
+        , timeout = Nothing
+        , withCredentials = True
+        }
+
+
+
+-- Http.post ("/rules/" ++ (toString ruleId))
+--     jsonBody
+--     ruleDecoder

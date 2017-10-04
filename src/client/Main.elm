@@ -63,6 +63,8 @@ type Msg
     | SetShowAddRule Bool
     | UpdateAddRule MutationRule
     | ResultAddRule (Result Http.Error Rule)
+    | RequestDeleteRule RuleId
+    | ResultDeleteRule (Result Http.Error Rule)
     | HideFlash
 
 
@@ -156,6 +158,9 @@ update msg model =
 
                 Descending ->
                     Ascending
+
+        allRulesBut ruleId =
+            model.rules |> List.filter (.ruleId >> (/=) ruleId)
     in
         case msg of
             SortByColumn column ->
@@ -225,16 +230,23 @@ update msg model =
                         setFlash model <| Error "Error updating rule."
 
                     Ok rule ->
-                        let
-                            cleanedRules =
-                                (List.filter (.ruleId >> (/=) rule.ruleId) model.rules)
-                        in
-                            setFlash
-                                { model
-                                    | rules = rule :: cleanedRules
-                                    , ruleToEdit = emptyRule
-                                }
-                                (Success <| "Updated rule for \"" ++ rule.from ++ "\"")
+                        setFlash
+                            { model
+                                | rules = rule :: (allRulesBut rule.ruleId)
+                                , ruleToEdit = emptyRule
+                            }
+                            (Success <| "Updated rule for \"" ++ rule.from ++ "\"")
+
+            RequestDeleteRule ruleId ->
+                ( model, Http.send ResultDeleteRule <| deleteRule ruleId )
+
+            ResultDeleteRule result ->
+                case result of
+                    Err msg ->
+                        setFlash model <| Error "Error deleting rule."
+
+                    Ok rule ->
+                        setFlash { model | rules = allRulesBut rule.ruleId } <| Success "Rule deleted."
 
             HideFlash ->
                 ( { model | flash = Nothing }, Cmd.none )
@@ -272,7 +284,7 @@ viewRuleTable model addRuleRows =
 
         ruleToRow rule =
             if shouldBeEditable rule then
-                viewRuleEditRow (EditRule emptyRule) UpdateEditRule RequestUpdateRule model.ruleToEdit
+                viewRuleEditRow (EditRule emptyRule) UpdateEditRule RequestUpdateRule (RequestDeleteRule rule.ruleId) model.ruleToEdit
             else
                 viewRuleRow (EditRule rule) rule
 

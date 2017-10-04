@@ -83,12 +83,14 @@ router.post("/rules", async ctx => {
   ctx.body = await db.createRule(ctx.request.body, ctx.state.user.emails[0].value)
 })
 
+router.delete("/rules/:id", async ctx => {
+  ctx.body = await db.deleteRule(ctx.params.id)
+})
+
 app.use(session({}, app))
 app.keys = [CONFIG.SESSION_SECRET]
 
-app
-  .use(passport.initialize())
-  .use(passport.session())
+app.use(passport.initialize()).use(passport.session())
 
 app.use(async (ctx, next) => {
   if (ctx.isAuthenticated() || ctx.url.startsWith(LOGIN_URL)) {
