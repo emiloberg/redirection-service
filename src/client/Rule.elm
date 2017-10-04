@@ -218,18 +218,6 @@ viewRuleEditRow doneEdit updateRule rule =
             ]
 
 
-
--- Todo refactor away this
-
-
-ruleToRow : Bool -> msg -> msg -> (Rule -> msg) -> Rule -> Html msg
-ruleToRow shouldBeEditable startEdit doneEdit updateRule rule =
-    if shouldBeEditable then
-        viewRuleEditRow doneEdit updateRule rule
-    else
-        viewRuleRow startEdit rule
-
-
 rulesDecoder : Decoder (List Rule)
 rulesDecoder =
     Decode.list ruleDecoder

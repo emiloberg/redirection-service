@@ -241,11 +241,16 @@ viewRuleTable model addRuleRows =
             else
                 rule
 
+        ruleToRow rule =
+            if shouldBeEditable rule then
+                viewRuleEditRow (EditRule emptyRule) UpdateEditRule model.ruleToEdit
+            else
+                viewRuleRow (EditRule rule) rule
+
         ruleRows =
             model.rules
                 |> sortByColumn model.sortColumn model.sortDirection
-                |> List.map
-                    (\currentRule -> ruleToRow (shouldBeEditable currentRule) (EditRule currentRule) (EditRule emptyRule) UpdateEditRule (getRule currentRule))
+                |> List.map ruleToRow
     in
         table [ class "table" ]
             [ thead []
