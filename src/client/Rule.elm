@@ -172,38 +172,60 @@ viewRuleRow startEdit rule =
         , td [] [ text <| dateToString <| rule.created ]
         , td [] [ text <| dateToString <| rule.updated ]
         , td []
-            [ button [ class "btn btn-outline-warning", onClick <| startEdit ] [ text "✏️" ]
+            [ button [ class "btn btn-outline-warning", onClick <| startEdit ] [ text "Edit" ]
             ]
         ]
 
 
-viewRuleEditRow doneEdit rule =
-    tr [ class "table-info" ]
-        [ td [] [ input [ value rule.from, placeholder "From" ] [] ]
-        , td [] [ input [ value rule.to, placeholder "To" ] [] ]
-        , td [] [ input [ type_ "checkbox", checked rule.isRegex ] [] ]
-        , td []
-            [ select [ class "form-control" ]
-                [ option [ value << toString <| Permanent ] [ text << toString <| Permanent ]
-                , option [ value << toString <| Temporary ] [ text << toString <| Temporary ]
+viewRuleEditRow : msg -> (Rule -> msg) -> Rule -> Html msg
+viewRuleEditRow doneEdit updateRule rule =
+    let
+        updateFrom value =
+            updateRule { rule | from = value }
+
+        updateTo value =
+            updateRule { rule | to = value }
+
+        updateIsRegex =
+            updateRule
+                { rule | isRegex = not rule.isRegex }
+
+        updateVariety value =
+            updateRule { rule | variety = (strToVariety value) }
+
+        updateWhy value =
+            updateRule { rule | why = value }
+    in
+        tr [ class "table-info" ]
+            [ td [] [ input [ value rule.from, placeholder "From", onInput updateFrom ] [] ]
+            , td [] [ input [ value rule.to, placeholder "To", onInput updateTo ] [] ]
+            , td [] [ input [ type_ "checkbox", checked rule.isRegex, onClick updateIsRegex ] [] ]
+            , td []
+                [ select [ class "form-control", onInput updateVariety ]
+                    [ option [ value << toString <| Permanent, (selected (rule.variety == Permanent)) ] [ text << toString <| Permanent ]
+                    , option [ value << toString <| Temporary, (selected (rule.variety == Temporary)) ] [ text << toString <| Temporary ]
+                    ]
+                ]
+            , td [] [ input [ value rule.why, placeholder "Why", onInput updateWhy ] [] ]
+            , td [] [ text rule.who ]
+            , td [] [ text <| dateToString <| rule.created ]
+            , td [] [ text <| dateToString <| rule.updated ]
+            , td []
+                [ button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "💾" ]
+                , button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "🚫" ]
+                , button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "🗑" ]
                 ]
             ]
-        , td [] [ input [ value rule.why, placeholder "Why" ] [] ]
-        , td [] [ text rule.who ]
-        , td [] [ text <| dateToString <| rule.created ]
-        , td [] [ text <| dateToString <| rule.updated ]
-        , td []
-            [ button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "💾" ]
-            , button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "🚫" ]
-            , button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "🗑" ]
-            ]
-        ]
 
 
-ruleToRow : Bool -> msg -> msg -> Rule -> Html msg
-ruleToRow shouldBeEditable startEdit doneEdit rule =
+
+-- Todo refactor away this
+
+
+ruleToRow : Bool -> msg -> msg -> (Rule -> msg) -> Rule -> Html msg
+ruleToRow shouldBeEditable startEdit doneEdit updateRule rule =
     if shouldBeEditable then
-        viewRuleEditRow doneEdit rule
+        viewRuleEditRow doneEdit updateRule rule
     else
         viewRuleRow startEdit rule
 

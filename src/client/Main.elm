@@ -42,7 +42,7 @@ type alias Model =
     { rules : List Rule
     , sortColumn : Column
     , sortDirection : Direction
-    , ruleToEdit : Maybe RuleId
+    , ruleToEdit : Rule
     , ruleToEditIsValid : Bool
     , ruleToAdd : MutationRule
     , ruleToAddIsValid : Bool
@@ -53,7 +53,8 @@ type alias Model =
 
 type Msg
     = SortByColumn Column
-    | EditRule (Maybe RuleId)
+    | EditRule Rule
+    | UpdateEditRule Rule
     | FetchedRules (Result Http.Error (List Rule))
     | RequestAddRule MutationRule
     | CancelAddRule
@@ -161,8 +162,11 @@ update msg model =
                 else
                     ( { model | sortColumn = column, sortDirection = Ascending }, Cmd.none )
 
-            EditRule ruleId ->
-                ( { model | ruleToEdit = ruleId }, Cmd.none )
+            EditRule rule ->
+                ( { model | ruleToEdit = rule }, Cmd.none )
+
+            UpdateEditRule rule ->
+                ( { model | ruleToEdit = rule }, Cmd.none )
 
             FetchedRules (Err error) ->
                 Debug.crash (toString error)
@@ -212,7 +216,7 @@ update msg model =
 
 
 viewRuleTable : Model -> List (Html Msg) -> Html Msg
-viewRuleTable model initialRows =
+viewRuleTable model addRuleRows =
     let
         arrow =
             case model.sortDirection of
@@ -229,13 +233,19 @@ viewRuleTable model initialRows =
                 ""
 
         shouldBeEditable rule =
-            (Maybe.withDefault False (model.ruleToEdit |> Maybe.map (\ruleToEdit -> ruleToEdit == rule.ruleId)))
+            model.ruleToEdit.ruleId == rule.ruleId
+
+        getRule rule =
+            if shouldBeEditable rule then
+                model.ruleToEdit
+            else
+                rule
 
         ruleRows =
             model.rules
                 |> sortByColumn model.sortColumn model.sortDirection
                 |> List.map
-                    (\rule -> ruleToRow (shouldBeEditable rule) (EditRule (Just rule.ruleId)) (EditRule Nothing) rule)
+                    (\currentRule -> ruleToRow (shouldBeEditable currentRule) (EditRule currentRule) (EditRule emptyRule) UpdateEditRule (getRule currentRule))
     in
         table [ class "table" ]
             [ thead []
@@ -251,14 +261,14 @@ viewRuleTable model initialRows =
                     , th [] [ text "Actions" ]
                     ]
                 ]
-            , tbody [] (initialRows ++ ruleRows)
+            , tbody [] (addRuleRows ++ ruleRows)
             ]
 
 
 view : Model -> Html Msg
 view model =
     let
-        editRows =
+        addRuleRows =
             if model.showAddRule then
                 [ viewAddRuleRow CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
             else
@@ -267,8 +277,13 @@ view model =
         div []
             [ viewMaybeFlash model.flash
             , button [ onClick (SetShowAddRule (not model.showAddRule)) ] [ text "Add" ]
-            , viewRuleTable model editRows
+            , viewRuleTable model addRuleRows
             ]
+
+
+emptyRule : Rule
+emptyRule =
+    Rule -1 "" "" Temporary "" "" False (Date.fromTime 0) (Date.fromTime 0)
 
 
 init : ( Model, Cmd Msg )
@@ -276,11 +291,11 @@ init =
     ( { rules = []
       , sortColumn = From
       , sortDirection = Ascending
-      , ruleToEdit = Nothing
+      , ruleToEdit = emptyRule
       , ruleToEditIsValid = False
       , ruleToAdd = MutationRule "" "" Temporary "" "" False
       , ruleToAddIsValid = False
-      , showAddRule = True
+      , showAddRule = False
       , flash = Nothing
       }
     , Cmd.batch
