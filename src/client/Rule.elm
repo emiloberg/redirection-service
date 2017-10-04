@@ -115,9 +115,9 @@ validateRule rule =
     in
         Ok rule
             |> andThen (validate FromIsEmpty (.from >> String.isEmpty >> not))
-            |> andThen (validate FromIsNotAPath (.from >> isPath))
+            |> andThen (validate FromIsNotAPath (oneOf [ .from >> isPath, .isRegex ]))
             |> andThen (validate ToIsEmpty (.to >> String.isEmpty >> not))
-            |> andThen (validate ToIsNotAUri (.to >> oneOf [ isPath, isUrl ]))
+            |> andThen (validate ToIsNotAUri (oneOf [ .to >> isPath, .to >> isUrl, .isRegex ]))
             |> andThen (validate WhyIsEmpty (.why >> String.isEmpty >> not))
             |> andThen (validate WhyIsTooShort (.why >> isShort >> not))
 
