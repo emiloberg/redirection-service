@@ -88,14 +88,17 @@ humanReadableRuleValidationError error =
         ToIsEmpty ->
             "Please specify where the request should be routed."
 
-        WhyIsEmpty ->
-            "Please record why the rule is needed, for posterity."
+        ToIsNotAUri ->
+            "\"To\" needs to be a valid path or URI e.g \"/gb/help\", \"http://izettle.com/gb\"."
 
         FromIsNotAPath ->
             "\"From\" needs to be a valid path e.g \"/gb/help\"."
 
-        ToIsNotAUri ->
-            "\"To\" needs to be a valid path or URI e.g \"/gb/help\", \"http://izettle.com/gb\"."
+        WhyIsEmpty ->
+            "Please record why the rule is needed, for posterity."
+
+        WhyIsTooShort ->
+            "Please elaborate on the purpose of the rule."
 
 
 sortByColumn : Column -> Direction -> List Rule -> List Rule

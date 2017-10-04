@@ -85,6 +85,7 @@ type RuleValidationError
     | ToIsEmpty
     | ToIsNotAUri
     | WhyIsEmpty
+    | WhyIsTooShort
 
 
 validateRule : MutationRule -> Result RuleValidationError MutationRule
@@ -108,6 +109,9 @@ validateRule rule =
                     List.map ((|>) value) validators
             in
                 foldl (||) False validations
+
+        isShort str =
+            String.length str < 20
     in
         Ok rule
             |> andThen (validate FromIsEmpty (.from >> String.isEmpty >> not))
@@ -115,6 +119,7 @@ validateRule rule =
             |> andThen (validate ToIsEmpty (.to >> String.isEmpty >> not))
             |> andThen (validate ToIsNotAUri (.to >> oneOf [ isPath, isUrl ]))
             |> andThen (validate WhyIsEmpty (.why >> String.isEmpty >> not))
+            |> andThen (validate WhyIsTooShort (.why >> isShort >> not))
 
 
 viewAddRuleRow : msg -> (MutationRule -> msg) -> (MutationRule -> msg) -> MutationRule -> Html msg
