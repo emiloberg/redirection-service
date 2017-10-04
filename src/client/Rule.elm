@@ -177,8 +177,8 @@ viewRuleRow startEdit rule =
         ]
 
 
-viewRuleEditRow : msg -> (Rule -> msg) -> Rule -> Html msg
-viewRuleEditRow doneEdit updateRule rule =
+viewRuleEditRow : msg -> (Rule -> msg) -> msg -> Rule -> Html msg
+viewRuleEditRow cancelEdit updateRule requestUpdateRule rule =
     let
         updateFrom value =
             updateRule { rule | from = value }
@@ -211,9 +211,9 @@ viewRuleEditRow doneEdit updateRule rule =
             , td [] [ text <| dateToString <| rule.created ]
             , td [] [ text <| dateToString <| rule.updated ]
             , td []
-                [ button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "💾" ]
-                , button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "🚫" ]
-                , button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "🗑" ]
+                [ button [ class "btn btn-outline-warning", onClick <| requestUpdateRule ] [ text "💾" ]
+                , button [ class "btn btn-outline-warning", onClick <| cancelEdit ] [ text "🚫" ]
+                , button [ class "btn btn-outline-warning", onClick <| cancelEdit ] [ text "🗑" ] -- Todo implement me
                 ]
             ]
 
@@ -276,5 +276,23 @@ addRule mutationRule =
                     ]
     in
         Http.post "/rules"
+            jsonBody
+            ruleDecoder
+
+
+updateRule : Rule -> Http.Request Rule
+updateRule rule =
+    let
+        jsonBody =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "from", Encode.string rule.from )
+                    , ( "to", Encode.string rule.to )
+                    , ( "kind", Encode.string (toString rule.variety) )
+                    , ( "why", Encode.string rule.why )
+                    , ( "isRegex", Encode.bool rule.isRegex )
+                    ]
+    in
+        Http.post ("/rules/" ++ (toString rule.ruleId))
             jsonBody
             ruleDecoder

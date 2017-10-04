@@ -28,7 +28,22 @@ async function createRule(rule, user) {
   }, { fields: ["from", "to", "kind", "why", "who", "isRegex" ]})
 }
 
+async function updateRule(ruleId, rule, user) {
+  const res = await Rule.update({
+    ...rule,
+    who: user
+  }, {
+    returning: true,
+    where: {
+      id: ruleId
+    }
+  })
+
+  return res[1][0] //todo safeguard against this not existing
+}
+
 module.exports = {
   getAllRules,
-  createRule
+  createRule,
+  updateRule
 }

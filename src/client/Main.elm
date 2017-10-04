@@ -55,6 +55,8 @@ type Msg
     = SortByColumn Column
     | EditRule Rule
     | UpdateEditRule Rule
+    | ResultUpdateRule (Result Http.Error Rule)
+    | RequestUpdateRule
     | FetchedRules (Result Http.Error (List Rule))
     | RequestAddRule MutationRule
     | CancelAddRule
@@ -168,6 +170,16 @@ update msg model =
             UpdateEditRule rule ->
                 ( { model | ruleToEdit = rule }, Cmd.none )
 
+            RequestUpdateRule ->
+                -- todo add validation
+                --                case validateRule model.rule of
+                --                    Ok rule ->
+                ( model
+                , Http.send ResultUpdateRule (updateRule model.ruleToEdit)
+                )
+
+            --                    Err errorType ->
+            --                        setFlash model <| Warn (humanReadableRuleValidationError errorType)
             FetchedRules (Err error) ->
                 Debug.crash (toString error)
 
@@ -207,6 +219,23 @@ update msg model =
                             }
                             (Success <| "Added rule for \"" ++ rule.from ++ "\"")
 
+            ResultUpdateRule result ->
+                case result of
+                    Err msg ->
+                        setFlash model <| Error "Error updating rule."
+
+                    Ok rule ->
+                        let
+                            cleanedRules =
+                                (List.filter (.ruleId >> (/=) rule.ruleId) model.rules)
+                        in
+                            setFlash
+                                { model
+                                    | rules = rule :: cleanedRules
+                                    , ruleToEdit = emptyRule
+                                }
+                                (Success <| "Updated rule for \"" ++ rule.from ++ "\"")
+
             HideFlash ->
                 ( { model | flash = Nothing }, Cmd.none )
 
@@ -243,7 +272,7 @@ viewRuleTable model addRuleRows =
 
         ruleToRow rule =
             if shouldBeEditable rule then
-                viewRuleEditRow (EditRule emptyRule) UpdateEditRule model.ruleToEdit
+                viewRuleEditRow (EditRule emptyRule) UpdateEditRule RequestUpdateRule model.ruleToEdit
             else
                 viewRuleRow (EditRule rule) rule
 
