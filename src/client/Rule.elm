@@ -14,6 +14,7 @@ import Json.Decode.Pipeline
 import Debug
 import Result exposing (andThen)
 import Regex exposing (contains, regex)
+import List exposing (foldl)
 
 
 type Variety
@@ -82,6 +83,7 @@ type RuleValidationError
     = FromIsEmpty
     | FromIsNotAPath
     | ToIsEmpty
+    | ToIsNotAUri
     | WhyIsEmpty
 
 
@@ -96,11 +98,22 @@ validateRule rule =
 
         isPath =
             contains <| regex "^(\\/[^\\s\\/]+)+$"
+
+        isUrl =
+            contains <| regex "(http(s)?:\\/\\/.)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)"
+
+        oneOf validators value =
+            let
+                validations =
+                    List.map ((|>) value) validators
+            in
+                foldl (||) False validations
     in
         Ok rule
             |> andThen (validate FromIsEmpty (.from >> String.isEmpty >> not))
             |> andThen (validate FromIsNotAPath (.from >> isPath))
             |> andThen (validate ToIsEmpty (.to >> String.isEmpty >> not))
+            |> andThen (validate ToIsNotAUri (.to >> oneOf [ isPath, isUrl ]))
             |> andThen (validate WhyIsEmpty (.why >> String.isEmpty >> not))
 
 

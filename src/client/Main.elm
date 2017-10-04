@@ -92,7 +92,10 @@ humanReadableRuleValidationError error =
             "Please record why the rule is needed, for posterity."
 
         FromIsNotAPath ->
-            "\"From\" needs to be a valid path e.g \"/some/path\"."
+            "\"From\" needs to be a valid path e.g \"/gb/help\"."
+
+        ToIsNotAUri ->
+            "\"To\" needs to be a valid path or URI e.g \"/gb/help\", \"http://izettle.com/gb\"."
 
 
 sortByColumn : Column -> Direction -> List Rule -> List Rule
