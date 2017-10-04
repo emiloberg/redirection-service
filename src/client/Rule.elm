@@ -1,6 +1,5 @@
 module Rule exposing (..)
 
-import Graph
 import Http
 import Date exposing (Date)
 import Date.Extra.Format as Format exposing (format)
@@ -211,7 +210,7 @@ ruleToRow shouldBeEditable startEdit doneEdit rule =
 
 rulesDecoder : Decoder (List Rule)
 rulesDecoder =
-    Decode.at [ "data", "allRules", "edges" ] <| Decode.list (Decode.field "node" ruleDecoder)
+    Decode.list ruleDecoder
 
 
 varietyDecoder : Decoder Variety
@@ -250,57 +249,22 @@ ruleDecoder =
 
 getRules : Http.Request (List Rule)
 getRules =
-    Graph.query
-        """
-          {
-            allRules {
-              edges {
-                node {
-                  id,
-                  from,
-                  to,
-                  kind,
-                  why,
-                  who,
-                  isRegex,
-                  created,
-                  updated
-                }
-              }
-            }
-          }
-        """
-        rulesDecoder
+    Http.get "/rules" rulesDecoder
 
 
 addRule : MutationRule -> Http.Request Rule
 addRule mutationRule =
-    Graph.queryWithVars
-        """
-          mutation CreateRule($from: String!, $to: String!, $kind: String!, $why: String!, $who: String!, $isRegex: Boolean!) {
-            createRule(input: {rule: {from: $from, to: $to, kind: $kind, why: $why, who: $who, isRegex: $isRegex}}) {
-              rule {
-                id
-                from
-                to
-                kind
-                why
-                who
-                isRegex
-                created
-                updated
-              }
-            }
-          }
-        """
-        [ ( "from", Encode.string mutationRule.from )
-        , ( "to", Encode.string mutationRule.to )
-        , ( "kind", Encode.string (toString mutationRule.variety) )
-        , ( "why", Encode.string mutationRule.why )
-        , ( "who", Encode.string "not@real.user" ) --todo change me
-        , ( "isRegex", Encode.bool mutationRule.isRegex )
-        ]
-        (Decode.at
-            [ "data", "createRule", "rule" ]
+    let
+        jsonBody =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "from", Encode.string mutationRule.from )
+                    , ( "to", Encode.string mutationRule.to )
+                    , ( "kind", Encode.string (toString mutationRule.variety) )
+                    , ( "why", Encode.string mutationRule.why )
+                    , ( "isRegex", Encode.bool mutationRule.isRegex )
+                    ]
+    in
+        Http.post "/rules"
+            jsonBody
             ruleDecoder
-        )

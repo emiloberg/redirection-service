@@ -5,8 +5,7 @@ const passport = require("koa-passport")
 const morgan = require("koa-morgan")
 const session = require("koa-session")
 const GoogleStrategy = require("passport-google-oauth20").Strategy
-const { postgraphql } = require("postgraphql")
-// const bodyParser = require("koa-bodyparser")
+const bodyParser = require("koa-bodyparser")
 const CONFIG = require("./config")
 const Koa = require("koa")
 const Router = require("koa-router")
@@ -21,7 +20,7 @@ const elmJs = fs.readFileSync(path.join(__dirname, "../../dist/client.js")).toSt
 const LOGIN_URL = "/login"
 const LOGIN_CALLBACK_URL = "/login/callback"
 
-const graph = postgraphql(CONFIG.DATABASE_URL, CONFIG.DATABASE_SCHEMA, CONFIG.POSTGRAPHQL_OPTIONS)
+const db = require("./database")
 
 passport.use(
   new GoogleStrategy(
@@ -72,6 +71,14 @@ router.get("/", async ctx => {
   ctx.body = indexHtml
 })
 
+router.get("/rules", async ctx => {
+  ctx.body = await db.getAllRules()
+})
+
+router.post("/rules", async ctx => {
+  ctx.body = await db.createRule(ctx.request.body, ctx.state.user.emails[0].value)
+})
+
 app.use(session({}, app))
 app.keys = [CONFIG.SESSION_SECRET]
 
@@ -88,8 +95,8 @@ app.use(async (ctx, next) => {
 })
 
 app
+  .use(bodyParser())
   .use(morgan("dev"))
-  .use(graph)
   .use(router.routes())
   .use(router.allowedMethods())
 
