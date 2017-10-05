@@ -71,7 +71,7 @@ router.get("/", async ctx => {
   ctx.body = indexHtml
 })
 
-router.post("/rules/:id", async ctx => {
+router.put("/rules/:id", async ctx => {
   ctx.body = await db.updateRule(ctx.params.id, ctx.request.body, ctx.state.user.emails[0].value)
 })
 

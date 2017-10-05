@@ -293,9 +293,15 @@ updateRule rule =
                     , ( "isRegex", Encode.bool rule.isRegex )
                     ]
     in
-        Http.post ("/rules/" ++ (toString rule.ruleId))
-            jsonBody
-            ruleDecoder
+        Http.request
+            { method = "PUT"
+            , headers = []
+            , url = "/rules/" ++ (toString rule.ruleId)
+            , body = jsonBody
+            , expect = Http.expectJson ruleDecoder
+            , timeout = Nothing
+            , withCredentials = True
+            }
 
 
 deleteRule : RuleId -> Http.Request Rule
@@ -309,9 +315,3 @@ deleteRule ruleId =
         , timeout = Nothing
         , withCredentials = True
         }
-
-
-
--- Http.post ("/rules/" ++ (toString ruleId))
---     jsonBody
---     ruleDecoder
