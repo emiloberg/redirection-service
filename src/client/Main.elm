@@ -42,7 +42,7 @@ type alias Model =
     { rules : List Rule
     , sortColumn : Column
     , sortDirection : Direction
-    , ruleToEdit : Maybe RuleId
+    , ruleToEdit : Rule
     , ruleToEditIsValid : Bool
     , ruleToAdd : MutationRule
     , ruleToAddIsValid : Bool
@@ -53,13 +53,18 @@ type alias Model =
 
 type Msg
     = SortByColumn Column
-    | EditRule (Maybe RuleId)
+    | EditRule Rule
+    | UpdateEditRule Rule
+    | ResultUpdateRule (Result Http.Error Rule)
+    | RequestUpdateRule
     | FetchedRules (Result Http.Error (List Rule))
     | RequestAddRule MutationRule
     | CancelAddRule
     | SetShowAddRule Bool
     | UpdateAddRule MutationRule
     | ResultAddRule (Result Http.Error Rule)
+    | RequestDeleteRule RuleId
+    | ResultDeleteRule (Result Http.Error Rule)
     | HideFlash
 
 
@@ -153,6 +158,9 @@ update msg model =
 
                 Descending ->
                     Ascending
+
+        allRulesBut ruleId =
+            model.rules |> List.filter (.ruleId >> (/=) ruleId)
     in
         case msg of
             SortByColumn column ->
@@ -161,9 +169,22 @@ update msg model =
                 else
                     ( { model | sortColumn = column, sortDirection = Ascending }, Cmd.none )
 
-            EditRule ruleId ->
-                ( { model | ruleToEdit = ruleId }, Cmd.none )
+            EditRule rule ->
+                ( { model | ruleToEdit = rule }, Cmd.none )
 
+            UpdateEditRule rule ->
+                ( { model | ruleToEdit = rule }, Cmd.none )
+
+            RequestUpdateRule ->
+                -- todo add validation
+                --                case validateRule model.rule of
+                --                    Ok rule ->
+                ( model
+                , Http.send ResultUpdateRule (updateRule model.ruleToEdit)
+                )
+
+            --                    Err errorType ->
+            --                        setFlash model <| Warn (humanReadableRuleValidationError errorType)
             FetchedRules (Err error) ->
                 Debug.crash (toString error)
 
@@ -203,6 +224,30 @@ update msg model =
                             }
                             (Success <| "Added rule for \"" ++ rule.from ++ "\"")
 
+            ResultUpdateRule result ->
+                case result of
+                    Err msg ->
+                        setFlash model <| Error "Error updating rule."
+
+                    Ok rule ->
+                        setFlash
+                            { model
+                                | rules = rule :: (allRulesBut rule.ruleId)
+                                , ruleToEdit = emptyRule
+                            }
+                            (Success <| "Updated rule for \"" ++ rule.from ++ "\"")
+
+            RequestDeleteRule ruleId ->
+                ( model, Http.send ResultDeleteRule <| deleteRule ruleId )
+
+            ResultDeleteRule result ->
+                case result of
+                    Err msg ->
+                        setFlash model <| Error "Error deleting rule."
+
+                    Ok rule ->
+                        setFlash { model | rules = allRulesBut rule.ruleId } <| Success "Rule deleted."
+
             HideFlash ->
                 ( { model | flash = Nothing }, Cmd.none )
 
@@ -212,7 +257,7 @@ update msg model =
 
 
 viewRuleTable : Model -> List (Html Msg) -> Html Msg
-viewRuleTable model initialRows =
+viewRuleTable model addRuleRows =
     let
         arrow =
             case model.sortDirection of
@@ -229,13 +274,24 @@ viewRuleTable model initialRows =
                 ""
 
         shouldBeEditable rule =
-            (Maybe.withDefault False (model.ruleToEdit |> Maybe.map (\ruleToEdit -> ruleToEdit == rule.ruleId)))
+            model.ruleToEdit.ruleId == rule.ruleId
+
+        getRule rule =
+            if shouldBeEditable rule then
+                model.ruleToEdit
+            else
+                rule
+
+        ruleToRow rule =
+            if shouldBeEditable rule then
+                viewRuleEditRow (EditRule emptyRule) UpdateEditRule RequestUpdateRule (RequestDeleteRule rule.ruleId) model.ruleToEdit
+            else
+                viewRuleRow (EditRule rule) rule
 
         ruleRows =
             model.rules
                 |> sortByColumn model.sortColumn model.sortDirection
-                |> List.map
-                    (\rule -> ruleToRow (shouldBeEditable rule) (EditRule (Just rule.ruleId)) (EditRule Nothing) rule)
+                |> List.map ruleToRow
     in
         table [ class "table" ]
             [ thead []
@@ -251,14 +307,14 @@ viewRuleTable model initialRows =
                     , th [] [ text "Actions" ]
                     ]
                 ]
-            , tbody [] (initialRows ++ ruleRows)
+            , tbody [] (addRuleRows ++ ruleRows)
             ]
 
 
 view : Model -> Html Msg
 view model =
     let
-        editRows =
+        addRuleRows =
             if model.showAddRule then
                 [ viewAddRuleRow CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
             else
@@ -267,8 +323,13 @@ view model =
         div []
             [ viewMaybeFlash model.flash
             , button [ onClick (SetShowAddRule (not model.showAddRule)) ] [ text "Add" ]
-            , viewRuleTable model editRows
+            , viewRuleTable model addRuleRows
             ]
+
+
+emptyRule : Rule
+emptyRule =
+    Rule -1 "" "" Temporary "" "" False (Date.fromTime 0) (Date.fromTime 0)
 
 
 init : ( Model, Cmd Msg )
@@ -276,11 +337,11 @@ init =
     ( { rules = []
       , sortColumn = From
       , sortDirection = Ascending
-      , ruleToEdit = Nothing
+      , ruleToEdit = emptyRule
       , ruleToEditIsValid = False
       , ruleToAdd = MutationRule "" "" Temporary "" "" False
       , ruleToAddIsValid = False
-      , showAddRule = True
+      , showAddRule = False
       , flash = Nothing
       }
     , Cmd.batch

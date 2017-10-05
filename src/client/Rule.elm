@@ -1,6 +1,5 @@
 module Rule exposing (..)
 
-import Graph
 import Http
 import Date exposing (Date)
 import Date.Extra.Format as Format exposing (format)
@@ -183,13 +182,32 @@ viewRuleRow startEdit rule =
         , td [] [ text <| dateToString <| rule.created ]
         , td [] [ text <| dateToString <| rule.updated ]
         , td []
-            [ button [ class "btn btn-outline-warning", onClick <| startEdit ] [ text "✏️" ]
+            [ button [ class "btn btn-outline-warning", onClick <| startEdit ] [ text "Edit" ]
             ]
         ]
 
 
-viewRuleEditRow : msg -> Rule -> Html msg
-viewRuleEditRow doneEdit rule =
+
+viewRuleEditRow : msg -> (Rule -> msg) -> msg -> msg -> Rule -> Html msg
+viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
+    let
+        updateFrom value =
+            updateRule { rule | from = value }
+
+        updateTo value =
+            updateRule { rule | to = value }
+
+        updateIsRegex =
+            updateRule
+                { rule | isRegex = not rule.isRegex }
+
+        updateVariety value =
+            updateRule { rule | variety = (strToVariety value) }
+
+        updateWhy value =
+            updateRule { rule | why = value }
+    in
+
     Html.form [ styles [ display tableRow ], class "table-info", onSubmit doneEdit ]
         [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From" ] [] ]
         , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To" ] [] ]
@@ -211,18 +229,9 @@ viewRuleEditRow doneEdit rule =
             ]
         ]
 
-
-ruleToRow : Bool -> msg -> msg -> Rule -> Html msg
-ruleToRow shouldBeEditable startEdit doneEdit rule =
-    if shouldBeEditable then
-        viewRuleEditRow doneEdit rule
-    else
-        viewRuleRow startEdit rule
-
-
 rulesDecoder : Decoder (List Rule)
 rulesDecoder =
-    Decode.at [ "data", "allRules", "edges" ] <| Decode.list (Decode.field "node" ruleDecoder)
+    Decode.list ruleDecoder
 
 
 varietyDecoder : Decoder Variety
@@ -261,57 +270,59 @@ ruleDecoder =
 
 getRules : Http.Request (List Rule)
 getRules =
-    Graph.query
-        """
-          {
-            allRules {
-              edges {
-                node {
-                  id,
-                  from,
-                  to,
-                  kind,
-                  why,
-                  who,
-                  isRegex,
-                  created,
-                  updated
-                }
-              }
-            }
-          }
-        """
-        rulesDecoder
+    Http.get "/rules" rulesDecoder
 
 
 addRule : MutationRule -> Http.Request Rule
 addRule mutationRule =
-    Graph.queryWithVars
-        """
-          mutation CreateRule($from: String!, $to: String!, $kind: String!, $why: String!, $who: String!, $isRegex: Boolean!) {
-            createRule(input: {rule: {from: $from, to: $to, kind: $kind, why: $why, who: $who, isRegex: $isRegex}}) {
-              rule {
-                id
-                from
-                to
-                kind
-                why
-                who
-                isRegex
-                created
-                updated
-              }
-            }
-          }
-        """
-        [ ( "from", Encode.string mutationRule.from )
-        , ( "to", Encode.string mutationRule.to )
-        , ( "kind", Encode.string (toString mutationRule.variety) )
-        , ( "why", Encode.string mutationRule.why )
-        , ( "who", Encode.string "not@real.user" ) --todo change me
-        , ( "isRegex", Encode.bool mutationRule.isRegex )
-        ]
-        (Decode.at
-            [ "data", "createRule", "rule" ]
+    let
+        jsonBody =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "from", Encode.string mutationRule.from )
+                    , ( "to", Encode.string mutationRule.to )
+                    , ( "kind", Encode.string (toString mutationRule.variety) )
+                    , ( "why", Encode.string mutationRule.why )
+                    , ( "isRegex", Encode.bool mutationRule.isRegex )
+                    ]
+    in
+        Http.post "/rules"
+            jsonBody
             ruleDecoder
-        )
+
+
+updateRule : Rule -> Http.Request Rule
+updateRule rule =
+    let
+        jsonBody =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "from", Encode.string rule.from )
+                    , ( "to", Encode.string rule.to )
+                    , ( "kind", Encode.string (toString rule.variety) )
+                    , ( "why", Encode.string rule.why )
+                    , ( "isRegex", Encode.bool rule.isRegex )
+                    ]
+    in
+        Http.request
+            { method = "PUT"
+            , headers = []
+            , url = "/rules/" ++ (toString rule.ruleId)
+            , body = jsonBody
+            , expect = Http.expectJson ruleDecoder
+            , timeout = Nothing
+            , withCredentials = True
+            }
+
+
+deleteRule : RuleId -> Http.Request Rule
+deleteRule ruleId =
+    Http.request
+        { method = "DELETE"
+        , headers = []
+        , url = "/rules/" ++ (toString ruleId)
+        , body = Http.emptyBody
+        , expect = Http.expectJson ruleDecoder
+        , timeout = Nothing
+        , withCredentials = True
+        }
