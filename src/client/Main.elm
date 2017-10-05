@@ -16,6 +16,8 @@ import Time
 import Task
 import Process
 import Header exposing (header)
+import Css exposing (px, padding, marginBottom, displayFlex, flexDirection, column, alignSelf, flexEnd)
+import Util exposing (styles)
 
 
 main : Program Never Model Msg
@@ -320,11 +322,23 @@ view model =
                 [ viewAddRuleRow CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
             else
                 []
+
+        layout children =
+            div []
+                [ viewMaybeFlash model.flash
+                , Header.header
+                , div [ styles [ padding <| px 20, displayFlex, flexDirection column ] ] children
+                ]
+
+        notice =
+            div [ class "alert-secondary", styles [ padding <| px 25, marginBottom (px 20) ] ] [ text "This service allow redirecting incoming traffic to izettle.com to any other path or url on the web. Note that any changes can take up to 10 minutes until taking effect." ]
+
+        newButton =
+            button [ class "btn btn-primary", styles [ alignSelf flexEnd, marginBottom (px 10) ], onClick (SetShowAddRule (not model.showAddRule)) ]
     in
-        div []
-            [ Header.header
-            , viewMaybeFlash model.flash
-            , button [ onClick (SetShowAddRule (not model.showAddRule)) ] [ text "Add" ]
+        layout
+            [ notice
+            , newButton [ text "New Rule" ]
             , viewRuleTable model addRuleRows
             ]
 

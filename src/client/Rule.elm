@@ -16,10 +16,7 @@ import Regex exposing (contains, regex)
 import List exposing (foldl)
 import Css exposing (display, tableRow, tableCell, backgroundColor, hex, solid, px, borderTop3, top, verticalAlign, padding)
 import Css.Colors exposing (teal, yellow)
-
-
-styles =
-    Css.asPairs >> Html.Attributes.style
+import Util exposing (styles)
 
 
 type Variety
@@ -150,7 +147,7 @@ viewAddRuleRow cancelMessage saveMessage updateMessage rule =
         updateWhy value =
             updateMessage { rule | why = value }
     in
-        Html.form [ styles [ display tableRow ], class "table-info", onSubmit <| saveMessage rule ]
+        Html.form [ styles [ display tableRow ], class "table-active", onSubmit <| saveMessage rule ]
             [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From", onInput updateFrom ] [] ]
             , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To", onInput updateTo ] [] ]
             , span [ styles cellStyles ] [ input [ type_ "checkbox", checked rule.isRegex, onClick updateIsRegex ] [] ]
