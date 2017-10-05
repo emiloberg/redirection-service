@@ -338,7 +338,7 @@ view model =
     in
         layout
             [ notice
-            , newButton [ text "New Rule" ]
+            , newButton [ text "＋" ]
             , viewRuleTable model addRuleRows
             ]
 
@@ -348,6 +348,11 @@ emptyRule =
     Rule -1 "" "" Temporary "" "" False (Date.fromTime 0) (Date.fromTime 0)
 
 
+emptyMutationRule : MutationRule
+emptyMutationRule =
+    MutationRule "" "" Temporary "" "" False
+
+
 init : ( Model, Cmd Msg )
 init =
     ( { rules = []
@@ -355,7 +360,7 @@ init =
       , sortDirection = Ascending
       , ruleToEdit = emptyRule
       , ruleToEditIsValid = False
-      , ruleToAdd = MutationRule "" "" Temporary "" "" False
+      , ruleToAdd = emptyMutationRule
       , ruleToAddIsValid = False
       , showAddRule = False
       , flash = Nothing

@@ -14,7 +14,7 @@ import Debug
 import Result exposing (andThen)
 import Regex exposing (contains, regex)
 import List exposing (foldl)
-import Css exposing (display, tableRow, tableCell, backgroundColor, hex, solid, px, borderTop3, top, verticalAlign, padding)
+import Css exposing (display, tableRow, tableCell, backgroundColor, hex, solid, px, borderTop3, top, verticalAlign, padding, marginRight)
 import Css.Colors exposing (teal, yellow)
 import Util exposing (styles)
 
@@ -78,11 +78,6 @@ resultToBool result =
 
         Err value ->
             False
-
-
-
--- EditRule (Just rule.ruleId)
--- EditRule Nothing
 
 
 type RuleValidationError
@@ -162,8 +157,8 @@ viewAddRuleRow cancelMessage saveMessage updateMessage rule =
             , span [ styles cellStyles ] []
             , span [ styles cellStyles ] []
             , span [ styles cellStyles ]
-                [ button [ class "btn btn-outline-warning", onClick <| saveMessage rule ] [ text "💾" ]
-                , button [ class "btn btn-outline-warning", onClick <| cancelMessage ] [ text "🚫" ]
+                [ a [ href "#", class "btn btn-success", styles [ marginRight (px 5) ], onClick <| saveMessage rule ] [ text "Save" ]
+                , a [ href "#", class "btn btn-outline-secondary", onClick <| cancelMessage ] [ text "Cancel" ]
                 ]
             ]
 
@@ -179,7 +174,7 @@ viewRuleRow startEdit rule =
         , td [] [ text <| dateToString <| rule.created ]
         , td [] [ text <| dateToString <| rule.updated ]
         , td []
-            [ button [ class "btn btn-outline-warning", onClick <| startEdit ] [ text "Edit" ]
+            [ button [ class "btn btn-link", onClick <| startEdit ] [ text "Edit" ]
             ]
         ]
 
@@ -203,7 +198,7 @@ viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
         updateWhy value =
             updateRule { rule | why = value }
     in
-        Html.form [ styles [ display tableRow ], class "table-info", onSubmit requestUpdateRule ]
+        Html.form [ styles [ display tableRow ], class "table-active", onSubmit requestUpdateRule ]
             [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From" ] [] ]
             , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To" ] [] ]
             , span [ styles cellStyles ] [ input [ type_ "checkbox", checked rule.isRegex ] [] ]
@@ -218,9 +213,9 @@ viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
             , span [ styles cellStyles ] [ text <| dateToString <| rule.created ]
             , span [ styles cellStyles ] [ text <| dateToString <| rule.updated ]
             , span [ styles cellStyles ]
-                [ button [ class "btn btn-outline-warning", onClick <| requestUpdateRule ] [ text "💾" ]
-                , button [ class "btn btn-outline-warning", onClick <| cancelEdit ] [ text "🚫" ]
-                , button [ class "btn btn-outline-warning", onClick <| deleteRuleMsg ] [ text "🗑" ]
+                [ a [ href "#", class "btn btn-success", styles [ marginRight (px 5) ], onClick <| requestUpdateRule ] [ text "Save" ]
+                , a [ href "#", class "btn btn-outline-secondary", styles [ marginRight (px 5) ], onClick <| cancelEdit ] [ text "Cancel" ]
+                , a [ href "#", class "btn btn-outline-danger", onClick <| deleteRuleMsg ] [ text "Delete" ]
                 ]
             ]
 
