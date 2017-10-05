@@ -2,9 +2,10 @@ const fs = require("fs")
 const path = require("path")
 const Router = require("koa-router")
 const passport = require("koa-passport")
-const CONFIG = require("./config")
-const router = new Router()
 const db = require("./database")
+const CONFIG = require("./config")
+
+const router = new Router()
 
 const indexHtml = fs.readFileSync(path.join(__dirname, "../client/index.html")).toString()
 const elmJs = fs.readFileSync(path.join(__dirname, "../../dist/client.js")).toString()
