@@ -6,7 +6,7 @@ import Date.Extra.Format as Format exposing (format)
 import Date.Extra.Config.Config_en_us exposing (config)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onClick, onInput, onSubmit)
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline
@@ -14,6 +14,12 @@ import Debug
 import Result exposing (andThen)
 import Regex exposing (contains, regex)
 import List exposing (foldl)
+import Css exposing (display, tableRow, tableCell, backgroundColor, hex, solid, px, borderTop3, top, verticalAlign, padding)
+import Css.Colors exposing (teal, yellow)
+
+
+styles =
+    Css.asPairs >> Html.Attributes.style
 
 
 type Variety
@@ -46,6 +52,10 @@ type alias MutationRule =
     , who : String
     , isRegex : Bool
     }
+
+
+cellStyles =
+    [ display tableCell, padding (Css.rem 0.75), verticalAlign top, borderTop3 (px 1) solid (hex "e9ecef") ]
 
 
 strToVariety : String -> Variety
@@ -140,21 +150,21 @@ viewAddRuleRow cancelMessage saveMessage updateMessage rule =
         updateWhy value =
             updateMessage { rule | why = value }
     in
-        tr [ class "table-info" ]
-            [ td [] [ input [ value rule.from, placeholder "From", onInput updateFrom ] [] ]
-            , td [] [ input [ value rule.to, placeholder "To", onInput updateTo ] [] ]
-            , td [] [ input [ type_ "checkbox", checked rule.isRegex, onClick updateIsRegex ] [] ]
-            , td []
+        Html.form [ styles [ display tableRow ], class "table-info", onSubmit <| saveMessage rule ]
+            [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From", onInput updateFrom ] [] ]
+            , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To", onInput updateTo ] [] ]
+            , span [ styles cellStyles ] [ input [ type_ "checkbox", checked rule.isRegex, onClick updateIsRegex ] [] ]
+            , span [ styles cellStyles ]
                 [ select [ class "form-control", onInput updateVariety ]
                     [ option [ value << toString <| Permanent, (selected (rule.variety == Permanent)) ] [ text << toString <| Permanent ]
                     , option [ value << toString <| Temporary, (selected (rule.variety == Temporary)) ] [ text << toString <| Temporary ]
                     ]
                 ]
-            , td [] [ input [ value rule.why, placeholder "Why", onInput updateWhy ] [] ]
-            , td [] []
-            , td [] []
-            , td [] []
-            , td []
+            , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why", onInput updateWhy ] [] ]
+            , span [ styles cellStyles ] []
+            , span [ styles cellStyles ] []
+            , span [ styles cellStyles ] []
+            , span [ styles cellStyles ]
                 [ button [ class "btn btn-outline-warning", onClick <| saveMessage rule ] [ text "💾" ]
                 , button [ class "btn btn-outline-warning", onClick <| cancelMessage ] [ text "🚫" ]
                 ]
@@ -177,6 +187,7 @@ viewRuleRow startEdit rule =
         ]
 
 
+
 viewRuleEditRow : msg -> (Rule -> msg) -> msg -> msg -> Rule -> Html msg
 viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
     let
@@ -196,27 +207,27 @@ viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
         updateWhy value =
             updateRule { rule | why = value }
     in
-        tr [ class "table-info" ]
-            [ td [] [ input [ value rule.from, placeholder "From", onInput updateFrom ] [] ]
-            , td [] [ input [ value rule.to, placeholder "To", onInput updateTo ] [] ]
-            , td [] [ input [ type_ "checkbox", checked rule.isRegex, onClick updateIsRegex ] [] ]
-            , td []
-                [ select [ class "form-control", onInput updateVariety ]
-                    [ option [ value << toString <| Permanent, (selected (rule.variety == Permanent)) ] [ text << toString <| Permanent ]
-                    , option [ value << toString <| Temporary, (selected (rule.variety == Temporary)) ] [ text << toString <| Temporary ]
-                    ]
-                ]
-            , td [] [ input [ value rule.why, placeholder "Why", onInput updateWhy ] [] ]
-            , td [] [ text rule.who ]
-            , td [] [ text <| dateToString <| rule.created ]
-            , td [] [ text <| dateToString <| rule.updated ]
-            , td []
-                [ button [ class "btn btn-outline-warning", onClick <| requestUpdateRule ] [ text "💾" ]
-                , button [ class "btn btn-outline-warning", onClick <| cancelEdit ] [ text "🚫" ]
-                , button [ class "btn btn-outline-warning", onClick <| deleteRuleMsg ] [ text "🗑" ] -- Todo implement me
+
+    Html.form [ styles [ display tableRow ], class "table-info", onSubmit doneEdit ]
+        [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From" ] [] ]
+        , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To" ] [] ]
+        , span [ styles cellStyles ] [ input [ type_ "checkbox", checked rule.isRegex ] [] ]
+        , span [ styles cellStyles ]
+            [ select [ class "form-control" ]
+                [ option [ value << toString <| Permanent ] [ text << toString <| Permanent ]
+                , option [ value << toString <| Temporary ] [ text << toString <| Temporary ]
                 ]
             ]
-
+        , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why" ] [] ]
+        , span [ styles cellStyles ] [ text rule.who ]
+        , span [ styles cellStyles ] [ text <| dateToString <| rule.created ]
+        , span [ styles cellStyles ] [ text <| dateToString <| rule.updated ]
+        , span [ styles cellStyles ]
+            [ button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "💾" ]
+            , button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "🚫" ]
+            , button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "🗑" ]
+            ]
+        ]
 
 rulesDecoder : Decoder (List Rule)
 rulesDecoder =
