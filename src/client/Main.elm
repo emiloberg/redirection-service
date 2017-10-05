@@ -15,6 +15,7 @@ import Flash exposing (..)
 import Time
 import Task
 import Process
+import Header exposing (header)
 
 
 main : Program Never Model Msg
@@ -321,7 +322,8 @@ view model =
                 []
     in
         div []
-            [ viewMaybeFlash model.flash
+            [ Header.header
+            , viewMaybeFlash model.flash
             , button [ onClick (SetShowAddRule (not model.showAddRule)) ] [ text "Add" ]
             , viewRuleTable model addRuleRows
             ]
