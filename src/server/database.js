@@ -13,6 +13,12 @@ const Rule = sequelize.define(
     from: {
       type: Sequelize.STRING,
       validate: {
+        is: PATH_REGEX
+      }
+    },
+    to: {
+      type: Sequelize.STRING,
+      validate: {
         pathOrUri(value) {
           if (!PATH_REGEX.test(value) || !URI_REGEX.test(value)) {
             throw new Error(
@@ -20,12 +26,6 @@ const Rule = sequelize.define(
             )
           }
         }
-      }
-    },
-    to: {
-      type: Sequelize.STRING,
-      validate: {
-        is: PATH_REGEX
       }
     },
     kind: {
