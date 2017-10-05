@@ -280,6 +280,10 @@ addRule mutationRule =
             ruleDecoder
 
 
+expectNothing =
+    Http.expectStringResponse (\_ -> Ok ())
+
+
 updateRule : Rule -> Http.Request Rule
 updateRule rule =
     let
@@ -304,14 +308,14 @@ updateRule rule =
             }
 
 
-deleteRule : RuleId -> Http.Request Rule
+deleteRule : RuleId -> Http.Request RuleId
 deleteRule ruleId =
     Http.request
         { method = "DELETE"
         , headers = []
         , url = "/rules/" ++ (toString ruleId)
         , body = Http.emptyBody
-        , expect = Http.expectJson ruleDecoder
+        , expect = Http.expectStringResponse (\_ -> Ok ruleId)
         , timeout = Nothing
         , withCredentials = True
         }

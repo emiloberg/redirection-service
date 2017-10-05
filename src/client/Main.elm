@@ -64,7 +64,7 @@ type Msg
     | UpdateAddRule MutationRule
     | ResultAddRule (Result Http.Error Rule)
     | RequestDeleteRule RuleId
-    | ResultDeleteRule (Result Http.Error Rule)
+    | ResultDeleteRule (Result Http.Error RuleId)
     | HideFlash
 
 
@@ -245,8 +245,8 @@ update msg model =
                     Err msg ->
                         setFlash model <| Error "Error deleting rule."
 
-                    Ok rule ->
-                        setFlash { model | rules = allRulesBut rule.ruleId } <| Success "Rule deleted."
+                    Ok ruleId ->
+                        setFlash { model | rules = allRulesBut ruleId } <| Success "Rule deleted."
 
             HideFlash ->
                 ( { model | flash = Nothing }, Cmd.none )

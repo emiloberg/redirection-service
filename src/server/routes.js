@@ -42,7 +42,8 @@ router.post("/rules", async ctx => {
 })
 
 router.delete("/rules/:id", async ctx => {
-  ctx.body = await db.deleteRule(ctx.params.id)
+  await db.deleteRule(ctx.params.id)
+  ctx.status = 204
 })
 
 module.exports = router

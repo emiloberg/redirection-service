@@ -54,8 +54,10 @@ async function updateRule(ruleId, rule, user) {
 
 async function deleteRule(ruleId) {
   const rule = await Rule.findById(ruleId)
-  await rule.destroy()
-  return rule //todo safeguard against this not existing
+
+  if (rule) {
+    await rule.destroy()
+  }
 }
 
 module.exports = {
