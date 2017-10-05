@@ -10,6 +10,14 @@ const router = new Router()
 const indexHtml = fs.readFileSync(path.join(__dirname, "../client/index.html")).toString()
 const elmJs = fs.readFileSync(path.join(__dirname, "../../dist/client.js")).toString()
 
+const handleValidationError = (ctx, error) => {
+  if (error.name == "SequelizeValidationError") {
+    ctx.status = 400
+  } else {
+    throw error
+  }
+}
+
 router.get("/client.js", async ctx => {
   ctx.body = elmJs
 })
@@ -30,7 +38,11 @@ router.get("/", async ctx => {
 })
 
 router.put("/rules/:id", async ctx => {
-  ctx.body = await db.updateRule(ctx.params.id, ctx.request.body, ctx.state.user.emails[0].value)
+  try {
+    ctx.body = await db.updateRule(ctx.params.id, ctx.request.body, ctx.state.user.emails[0].value)
+  } catch (e) {
+    handleValidationError(ctx, e)
+  }
 })
 
 router.get("/rules", async ctx => {
@@ -38,7 +50,11 @@ router.get("/rules", async ctx => {
 })
 
 router.post("/rules", async ctx => {
-  ctx.body = await db.createRule(ctx.request.body, ctx.state.user.emails[0].value)
+  try {
+    ctx.body = await db.createRule(ctx.request.body, ctx.state.user.emails[0].value)
+  } catch (e) {
+    handleValidationError(ctx, e)
+  }
 })
 
 router.delete("/rules/:id", async ctx => {

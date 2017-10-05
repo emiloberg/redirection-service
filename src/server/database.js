@@ -3,13 +3,37 @@ const CONFIG = require("./config")
 
 const sequelize = new Sequelize(CONFIG.DATABASE_URL)
 
+const URI_REGEX = /^(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/i
+const PATH_REGEX = /^(\/[^\s\/]+)+$/i
+
 const Rule = sequelize.define(
   "rule",
   {
     id: { type: Sequelize.INTEGER, primaryKey: true },
-    from: { type: Sequelize.STRING },
-    to: { type: Sequelize.STRING },
-    kind: { type: Sequelize.STRING },
+    from: {
+      type: Sequelize.STRING,
+      validate: {
+        is: PATH_REGEX
+      }
+    },
+    to: {
+      type: Sequelize.STRING,
+      validate: {
+        pathOrUri(value) {
+          if (!PATH_REGEX.test(value) || !URI_REGEX.test(value)) {
+            throw new Error(
+              'Value has to be either a path (e.g. "/foo/bar") or a URI (e.g. "http://foo.bar/baz")'
+            )
+          }
+        }
+      }
+    },
+    kind: {
+      type: Sequelize.STRING,
+      validate: {
+        isIn: [["Temporary", "Permanent"]]
+      }
+    },
     why: { type: Sequelize.STRING },
     who: { type: Sequelize.STRING },
     isRegex: { type: Sequelize.BOOLEAN, field: "is_regex" }
@@ -25,7 +49,6 @@ async function getAllRules() {
 }
 
 async function createRule(rule, user) {
-  // TODO - Validation
   return await Rule.create(
     {
       ...rule,
@@ -36,6 +59,7 @@ async function createRule(rule, user) {
 }
 
 async function updateRule(ruleId, rule, user) {
+  //TODO: Set updatedAt
   const res = await Rule.update(
     {
       ...rule,
