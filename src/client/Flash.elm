@@ -3,6 +3,8 @@ module Flash exposing (..)
 import Maybe exposing (withDefault)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Util exposing (styles)
+import Css exposing (position, fixed, top, left, px, zIndex, int, transform, translateX, pct)
 
 
 none =
@@ -16,20 +18,24 @@ type Flash
     | Error String
 
 
+viewFlashWithClass klass message =
+    div [ class klass, styles [ position fixed, top (px 15), left (pct 50), transform (translateX <| pct -50), zIndex (int 100) ] ] [ text message ]
+
+
 viewFlash : Flash -> Html msg
 viewFlash flash =
     case flash of
-        Success flashMessage ->
-            div [ class "alert alert-success" ] [ text flashMessage ]
+        Success message ->
+            viewFlashWithClass "alert alert-success" message
 
-        Info flashMessage ->
-            div [ class "alert alert-info" ] [ text flashMessage ]
+        Info message ->
+            viewFlashWithClass "alert alert-info" message
 
-        Warn flashMessage ->
-            div [ class "alert alert-warning" ] [ text flashMessage ]
+        Warn message ->
+            viewFlashWithClass "alert alert-warning" message
 
-        Error flashMessage ->
-            div [ class "alert alert-danger" ] [ text flashMessage ]
+        Error message ->
+            viewFlashWithClass "alert alert-danger" message
 
 
 viewMaybeFlash : Maybe Flash -> Html msg
