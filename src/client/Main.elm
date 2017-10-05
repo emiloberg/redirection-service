@@ -16,7 +16,7 @@ import Time
 import Task
 import Process
 import Header exposing (header)
-import Css exposing (px, padding, marginBottom, displayFlex, flexDirection, column, alignSelf, flexEnd)
+import Css exposing (px, padding, marginBottom, displayFlex, flexDirection, column, alignSelf, flexEnd, padding2)
 import Util exposing (styles)
 
 
@@ -331,7 +331,10 @@ view model =
                 ]
 
         notice =
-            div [ class "alert-secondary", styles [ padding <| px 25, marginBottom (px 20) ] ] [ text "This service allow redirecting incoming traffic to izettle.com to any other path or url on the web. Note that any changes can take up to 10 minutes until taking effect." ]
+            div [ class "jumbotron", styles [ padding2 (Css.rem 2) (Css.rem 1), marginBottom (px 20) ] ]
+                [ p [ class "lead" ] [ text "This service allow redirecting incoming traffic to izettle.com to any other path or url on the web." ]
+                , p [] [ text "Note that any changes can take up to 10 minutes until taking effect." ]
+                ]
 
         newButton =
             button [ class "btn btn-primary", styles [ alignSelf flexEnd, marginBottom (px 10) ], onClick (SetShowAddRule (not model.showAddRule)) ]
