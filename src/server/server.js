@@ -15,7 +15,11 @@ app
   .use(passport.initialize())
   .use(passport.session())
   .use(async (ctx, next) => {
-    if (ctx.isAuthenticated() || ctx.url.startsWith(CONFIG.LOGIN_URL)) {
+    if (
+      ctx.isAuthenticated() ||
+      ctx.url.startsWith(CONFIG.LOGIN_URL) ||
+      ctx.request.method === "GET" && ctx.url === "/rules"
+    ) {
       await next()
     } else {
       await ctx.redirect(CONFIG.LOGIN_URL)
