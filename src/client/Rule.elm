@@ -187,7 +187,6 @@ viewRuleRow startEdit rule =
         ]
 
 
-
 viewRuleEditRow : msg -> (Rule -> msg) -> msg -> msg -> Rule -> Html msg
 viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
     let
@@ -207,27 +206,27 @@ viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
         updateWhy value =
             updateRule { rule | why = value }
     in
-
-    Html.form [ styles [ display tableRow ], class "table-info", onSubmit doneEdit ]
-        [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From" ] [] ]
-        , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To" ] [] ]
-        , span [ styles cellStyles ] [ input [ type_ "checkbox", checked rule.isRegex ] [] ]
-        , span [ styles cellStyles ]
-            [ select [ class "form-control" ]
-                [ option [ value << toString <| Permanent ] [ text << toString <| Permanent ]
-                , option [ value << toString <| Temporary ] [ text << toString <| Temporary ]
+        Html.form [ styles [ display tableRow ], class "table-info", onSubmit requestUpdateRule ]
+            [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From" ] [] ]
+            , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To" ] [] ]
+            , span [ styles cellStyles ] [ input [ type_ "checkbox", checked rule.isRegex ] [] ]
+            , span [ styles cellStyles ]
+                [ select [ class "form-control" ]
+                    [ option [ value << toString <| Permanent ] [ text << toString <| Permanent ]
+                    , option [ value << toString <| Temporary ] [ text << toString <| Temporary ]
+                    ]
+                ]
+            , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why" ] [] ]
+            , span [ styles cellStyles ] [ text rule.who ]
+            , span [ styles cellStyles ] [ text <| dateToString <| rule.created ]
+            , span [ styles cellStyles ] [ text <| dateToString <| rule.updated ]
+            , span [ styles cellStyles ]
+                [ button [ class "btn btn-outline-warning", onClick <| requestUpdateRule ] [ text "💾" ]
+                , button [ class "btn btn-outline-warning", onClick <| cancelEdit ] [ text "🚫" ]
+                , button [ class "btn btn-outline-warning", onClick <| deleteRuleMsg ] [ text "🗑" ]
                 ]
             ]
-        , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why" ] [] ]
-        , span [ styles cellStyles ] [ text rule.who ]
-        , span [ styles cellStyles ] [ text <| dateToString <| rule.created ]
-        , span [ styles cellStyles ] [ text <| dateToString <| rule.updated ]
-        , span [ styles cellStyles ]
-            [ button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "💾" ]
-            , button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "🚫" ]
-            , button [ class "btn btn-outline-warning", onClick <| doneEdit ] [ text "🗑" ]
-            ]
-        ]
+
 
 rulesDecoder : Decoder (List Rule)
 rulesDecoder =
