@@ -1,0 +1,11 @@
+{
+  "name": "redirection-service",
+  "scripts": {},
+  "env": {},
+  "addons": [],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
