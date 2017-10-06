@@ -19,6 +19,7 @@ import Header exposing (header)
 import Util exposing (styles)
 import Maybe exposing (withDefault)
 import String exposing (contains)
+import List exposing (drop)
 import Css
     exposing
         ( px
@@ -74,7 +75,7 @@ type alias Model =
     , ruleToAdd : MutationRule
     , ruleToAddIsValid : Bool
     , showAddRule : Bool
-    , flash : Maybe Flash
+    , flash : List Flash
     , filterText : Maybe String
     }
 
@@ -110,7 +111,7 @@ delay time msg =
 
 setFlash : Model -> Flash -> ( Model, Cmd Msg )
 setFlash model flash =
-    { model | flash = Just flash } ! [ delay (Time.second * 5) HideFlash ]
+    ( { model | flash = model.flash ++ [ flash ] }, delay (Time.second * 5) HideFlash )
 
 
 humanReadableRuleValidationError : RuleValidationError -> String
@@ -278,7 +279,7 @@ update msg model =
                         setFlash { model | rules = allRulesBut ruleId } <| Success "Rule deleted."
 
             HideFlash ->
-                ( { model | flash = Nothing }, Cmd.none )
+                ( { model | flash = drop 1 model.flash }, Cmd.none )
 
             UpdateFilter "" ->
                 ( { model | filterText = Nothing }, Cmd.none )
@@ -365,7 +366,7 @@ view model =
 
         layout children =
             div []
-                [ viewMaybeFlash model.flash
+                [ viewFlashes model.flash
                 , Header.header
                 , div [ styles [ padding <| px 20, displayFlex, flexDirection column ] ] children
                 ]
@@ -415,7 +416,7 @@ init =
       , ruleToAdd = emptyMutationRule
       , ruleToAddIsValid = False
       , showAddRule = False
-      , flash = Nothing
+      , flash = []
       , filterText = Nothing
       }
     , Cmd.batch

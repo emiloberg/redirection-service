@@ -4,6 +4,7 @@ import Maybe exposing (withDefault)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Util exposing (styles)
+import List exposing (reverse)
 import Css exposing (position, fixed, top, left, px, zIndex, int, transform, translateX, pct)
 
 
@@ -19,7 +20,7 @@ type Flash
 
 
 viewFlashWithClass klass message =
-    div [ class klass, styles [ position fixed, top (px 15), left (pct 50), transform (translateX <| pct -50), zIndex (int 100) ] ] [ text message ]
+    div [ class klass ] [ text message ]
 
 
 viewFlash : Flash -> Html msg
@@ -38,6 +39,7 @@ viewFlash flash =
             viewFlashWithClass "alert alert-danger" message
 
 
-viewMaybeFlash : Maybe Flash -> Html msg
-viewMaybeFlash flash =
-    withDefault none (Maybe.map viewFlash flash)
+viewFlashes : List Flash -> Html msg
+viewFlashes flashes =
+    div [ styles [ position fixed, top (px 15), left (pct 50), transform (translateX <| pct -50), zIndex (int 100) ] ]
+        (List.map viewFlash <| reverse flashes)
