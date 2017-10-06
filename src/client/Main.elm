@@ -249,7 +249,7 @@ update msg model =
                         setFlash
                             { model
                                 | rules = rule :: model.rules
-                                , ruleToAdd = MutationRule "" "" Temporary "" "" False
+                                , ruleToAdd = MutationRule "" "" Permanent "" "" False
                                 , showAddRule = False
                             }
                             (Success <| "Added rule for \"" ++ rule.from ++ "\"")
@@ -403,7 +403,7 @@ emptyRule =
 
 emptyMutationRule : MutationRule
 emptyMutationRule =
-    MutationRule "" "" Temporary "" "" False
+    MutationRule "" "" Permanent "" "" False
 
 
 init : ( Model, Cmd Msg )
