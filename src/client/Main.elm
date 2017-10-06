@@ -416,7 +416,7 @@ init =
       , ruleToAddIsValid = False
       , showAddRule = False
       , flash = Nothing
-      , filterText = Just ""
+      , filterText = Nothing
       }
     , Cmd.batch
         [ Http.send FetchedRules getRules
