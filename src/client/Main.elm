@@ -16,8 +16,27 @@ import Time
 import Task
 import Process
 import Header exposing (header)
-import Css exposing (px, padding, marginBottom, displayFlex, flexDirection, column, alignSelf, flexEnd, padding2)
 import Util exposing (styles)
+import Css
+    exposing
+        ( px
+        , padding
+        , marginBottom
+        , displayFlex
+        , flexDirection
+        , column
+        , alignSelf
+        , flexEnd
+        , padding2
+        )
+
+
+tableLayoutFixed =
+    Css.property "table-layout" "fixed"
+
+
+wordBreakAll =
+    Css.property "word-break" "break-all"
 
 
 main : Program Never Model Msg
@@ -296,7 +315,7 @@ viewRuleTable model addRuleRows =
                 |> sortByColumn model.sortColumn model.sortDirection
                 |> List.map ruleToRow
     in
-        table [ class "table" ]
+        table [ class "table", styles [ tableLayoutFixed, wordBreakAll ] ]
             [ thead []
                 [ tr []
                     [ th [ onClick <| SortByColumn From ] [ text <| "From" ++ showArrow From ]
