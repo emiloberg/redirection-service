@@ -9,7 +9,7 @@
     "start": "npm-run-all --parallel build:dev:watch serve:dev:watch",
     "build": "elm make src/client/Main.elm --output=dist/client.js --yes --warn",
     "build:dev:watch": "chokidar --initial src/client/**/*.elm -c 'yarn build:dev:client'",
-    "build:dev:client": "elm make src/client/Main.elm --debug --output=dist/client.js",
+    "build:dev:client": "elm make src/client/Main.elm --debug --warn --output=dist/client.js",
     "serve:dev:watch": "nodemon -e js,html ./src/server/server.js",
     "db:reset": "yarn db:drop && yarn db:create && yarn db:create-schema",
     "db:create": "createdb redirection_service",
