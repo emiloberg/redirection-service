@@ -9,6 +9,7 @@ const router = new Router()
 
 const indexHtml = fs.readFileSync(path.join(__dirname, "../client/index.html")).toString()
 const elmJs = fs.readFileSync(path.join(__dirname, "../../dist/client.js")).toString()
+const logoSvg = fs.readFileSync(path.join(__dirname, "./logo.svg")).toString()
 
 const handleValidationError = (ctx, error) => {
   if (error.name == "SequelizeValidationError") {
@@ -20,6 +21,11 @@ const handleValidationError = (ctx, error) => {
 
 router.get("/client.js", async ctx => {
   ctx.body = elmJs
+})
+
+router.get("/logo.svg", async ctx => {
+  ctx.body = logoSvg
+  ctx.type = "image/svg+xml"
 })
 
 router.get(CONFIG.LOGIN_URL, passport.authenticate("google", { scope: ["profile", "email"] }))

@@ -15,6 +15,28 @@ import Flash exposing (..)
 import Time
 import Task
 import Process
+import Header exposing (header)
+import Util exposing (styles)
+import Css
+    exposing
+        ( px
+        , padding
+        , marginBottom
+        , displayFlex
+        , flexDirection
+        , column
+        , alignSelf
+        , flexEnd
+        , padding2
+        )
+
+
+tableLayoutFixed =
+    Css.property "table-layout" "fixed"
+
+
+wordBreakAll =
+    Css.property "word-break" "break-all"
 
 
 main : Program Never Model Msg
@@ -293,7 +315,7 @@ viewRuleTable model addRuleRows =
                 |> sortByColumn model.sortColumn model.sortDirection
                 |> List.map ruleToRow
     in
-        table [ class "table" ]
+        table [ class "table", styles [ tableLayoutFixed, wordBreakAll ] ]
             [ thead []
                 [ tr []
                     [ th [ onClick <| SortByColumn From ] [ text <| "From" ++ showArrow From ]
@@ -319,10 +341,26 @@ view model =
                 [ viewAddRuleRow CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
             else
                 []
+
+        layout children =
+            div []
+                [ viewMaybeFlash model.flash
+                , Header.header
+                , div [ styles [ padding <| px 20, displayFlex, flexDirection column ] ] children
+                ]
+
+        notice =
+            div [ class "jumbotron", styles [ padding2 (Css.rem 2) (Css.rem 1), marginBottom (px 20) ] ]
+                [ p [ class "lead" ] [ text "This service allow redirecting incoming traffic to izettle.com to any other path or url on the web." ]
+                , p [] [ text "Note that any changes can take up to 10 minutes until taking effect." ]
+                ]
+
+        newButton =
+            button [ class "btn btn-primary", styles [ alignSelf flexEnd, marginBottom (px 10) ], onClick (SetShowAddRule (not model.showAddRule)) ]
     in
-        div []
-            [ viewMaybeFlash model.flash
-            , button [ onClick (SetShowAddRule (not model.showAddRule)) ] [ text "Add" ]
+        layout
+            [ notice
+            , newButton [ text "＋" ]
             , viewRuleTable model addRuleRows
             ]
 
@@ -332,6 +370,11 @@ emptyRule =
     Rule -1 "" "" Temporary "" "" False (Date.fromTime 0) (Date.fromTime 0)
 
 
+emptyMutationRule : MutationRule
+emptyMutationRule =
+    MutationRule "" "" Temporary "" "" False
+
+
 init : ( Model, Cmd Msg )
 init =
     ( { rules = []
@@ -339,7 +382,7 @@ init =
       , sortDirection = Ascending
       , ruleToEdit = emptyRule
       , ruleToEditIsValid = False
-      , ruleToAdd = MutationRule "" "" Temporary "" "" False
+      , ruleToAdd = emptyMutationRule
       , ruleToAddIsValid = False
       , showAddRule = False
       , flash = Nothing
