@@ -3,7 +3,7 @@ module Main exposing (..)
 import Http
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import Date exposing (Date)
 import Date.Extra.Format as Format exposing (format)
 import Date.Extra.Config.Config_en_us exposing (config)
@@ -18,6 +18,7 @@ import Process
 import Header exposing (header)
 import Util exposing (styles)
 import Maybe exposing (withDefault)
+import String exposing (contains)
 import Css
     exposing
         ( px
@@ -93,6 +94,7 @@ type Msg
     | RequestDeleteRule RuleId
     | ResultDeleteRule (Result Http.Error RuleId)
     | HideFlash
+    | UpdateFilter String
 
 
 type Direction
@@ -278,6 +280,12 @@ update msg model =
             HideFlash ->
                 ( { model | flash = Nothing }, Cmd.none )
 
+            UpdateFilter "" ->
+                ( { model | filterText = Nothing }, Cmd.none )
+
+            UpdateFilter text ->
+                ( { model | filterText = Just text }, Cmd.none )
+
 
 
 -- Todo empty input fields here
@@ -315,8 +323,16 @@ viewRuleTable model addRuleRows =
             else
                 viewRuleRow (EditRule rule) rule
 
+        filteredRules =
+            case model.filterText of
+                Nothing ->
+                    model.rules
+
+                Just text ->
+                    List.filter (\rule -> contains text rule.from || contains text rule.to) model.rules
+
         ruleRows =
-            model.rules
+            filteredRules
                 |> sortByColumn model.sortColumn model.sortDirection
                 |> List.map ruleToRow
     in
@@ -363,9 +379,12 @@ view model =
         newButton =
             button [ class "btn btn-primary", styles [ marginBottom (px 10) ], onClick (SetShowAddRule (not model.showAddRule)) ]
 
+        updateFilterText value =
+            { model | filterText = value }
+
         actionBar =
             div [ styles [ displayFlex, justifyContent spaceBetween, alignItems center ] ]
-                [ input [ value <| withDefault "" model.filterText, placeholder "Filter", autofocus True ] []
+                [ input [ value <| withDefault "" model.filterText, placeholder "Filter", autofocus True, onInput UpdateFilter ] []
                 , newButton [ text "＋" ]
                 ]
     in
@@ -397,7 +416,7 @@ init =
       , ruleToAddIsValid = False
       , showAddRule = False
       , flash = Nothing
-      , filterText = Just "developer"
+      , filterText = Just ""
       }
     , Cmd.batch
         [ Http.send FetchedRules getRules
