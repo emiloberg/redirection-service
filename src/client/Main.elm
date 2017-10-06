@@ -17,6 +17,7 @@ import Task
 import Process
 import Header exposing (header)
 import Util exposing (styles)
+import Maybe exposing (withDefault)
 import Css
     exposing
         ( px
@@ -25,9 +26,12 @@ import Css
         , displayFlex
         , flexDirection
         , column
-        , alignSelf
+        , alignItems
+        , center
         , flexEnd
         , padding2
+        , justifyContent
+        , spaceBetween
         )
 
 
@@ -70,6 +74,7 @@ type alias Model =
     , ruleToAddIsValid : Bool
     , showAddRule : Bool
     , flash : Maybe Flash
+    , filterText : Maybe String
     }
 
 
@@ -356,11 +361,17 @@ view model =
                 ]
 
         newButton =
-            button [ class "btn btn-primary", styles [ alignSelf flexEnd, marginBottom (px 10) ], onClick (SetShowAddRule (not model.showAddRule)) ]
+            button [ class "btn btn-primary", styles [ marginBottom (px 10) ], onClick (SetShowAddRule (not model.showAddRule)) ]
+
+        actionBar =
+            div [ styles [ displayFlex, justifyContent spaceBetween, alignItems center ] ]
+                [ input [ value <| withDefault "" model.filterText, placeholder "Filter", autofocus True ] []
+                , newButton [ text "＋" ]
+                ]
     in
         layout
             [ notice
-            , newButton [ text "＋" ]
+            , actionBar
             , viewRuleTable model addRuleRows
             ]
 
@@ -386,6 +397,7 @@ init =
       , ruleToAddIsValid = False
       , showAddRule = False
       , flash = Nothing
+      , filterText = Just "developer"
       }
     , Cmd.batch
         [ Http.send FetchedRules getRules
