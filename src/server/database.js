@@ -6,6 +6,7 @@ const sequelize = new Sequelize(CONFIG.DATABASE_URL)
 const URI_REGEX = /^(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/i
 const PATH_REGEX = /^(\/[^\s\/]+)+$/i
 
+// NOTE: Remember to keep the validations below in sync with the client side validatinos in Rule.elm.
 const Rule = sequelize.define(
   "rule",
   {
@@ -20,7 +21,7 @@ const Rule = sequelize.define(
       type: Sequelize.STRING,
       validate: {
         pathOrUri(value) {
-          if (!PATH_REGEX.test(value) || !URI_REGEX.test(value)) {
+          if (!PATH_REGEX.test(value) && !URI_REGEX.test(value)) {
             throw new Error(
               'Value has to be either a path (e.g. "/foo/bar") or a URI (e.g. "http://foo.bar/baz")'
             )
@@ -34,7 +35,12 @@ const Rule = sequelize.define(
         isIn: [["Temporary", "Permanent"]]
       }
     },
-    why: { type: Sequelize.STRING },
+    why: {
+      type: Sequelize.STRING,
+      validate: {
+        len: [20]
+      }
+    },
     who: { type: Sequelize.STRING },
     isRegex: { type: Sequelize.BOOLEAN, field: "is_regex" }
   },
