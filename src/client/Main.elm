@@ -34,15 +34,9 @@ import Css
         , padding2
         , justifyContent
         , spaceBetween
+        , textAlign
+        , center
         )
-
-
-tableLayoutFixed =
-    Css.property "table-layout" "fixed"
-
-
-wordBreakAll =
-    Css.property "word-break" "break-all"
 
 
 main : Program Never Model Msg
@@ -359,12 +353,12 @@ viewRuleTable model addRuleRows =
                 |> sortByColumn model.sortColumn model.sortDirection
                 |> List.map ruleToRow
     in
-        table [ class "table", styles [ tableLayoutFixed, wordBreakAll ] ]
+        table [ class "table" ]
             [ thead []
                 [ tr []
                     [ th [ onClick <| SortByColumn From ] [ text <| "From" ++ showArrow From ]
                     , th [ onClick <| SortByColumn To ] [ text <| "To" ++ showArrow To ]
-                    , th [ onClick <| SortByColumn IsRegex ] [ text <| "Pattern" ++ showArrow IsRegex ]
+                    , th [ onClick <| SortByColumn IsRegex, styles [ textAlign center ] ] [ text <| "Pattern" ++ showArrow IsRegex ]
                     , th [ onClick <| SortByColumn Variety ] [ text <| "Variety" ++ showArrow Variety ]
                     , th [ onClick <| SortByColumn Why ] [ text <| "Why" ++ showArrow Why ]
                     , th [ onClick <| SortByColumn Who ] [ text <| "Who" ++ showArrow Who ]

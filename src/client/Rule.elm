@@ -14,9 +14,32 @@ import Debug
 import Result exposing (andThen)
 import Regex exposing (contains, regex)
 import List exposing (foldl)
-import Css exposing (display, tableRow, tableCell, backgroundColor, hex, solid, px, borderTop3, top, verticalAlign, padding, marginRight)
 import Css.Colors exposing (teal, yellow)
 import Util exposing (styles)
+import Css
+    exposing
+        ( display
+        , tableRow
+        , tableCell
+        , backgroundColor
+        , hex
+        , solid
+        , px
+        , borderTop3
+        , top
+        , verticalAlign
+        , padding
+        , marginRight
+        , minWidth
+        , textAlign
+        , center
+        , pct
+        , width
+        )
+
+
+wordBreakAll =
+    Css.property "word-break" "break-all"
 
 
 type Variety
@@ -143,16 +166,16 @@ viewAddRuleRow cancelMessage saveMessage updateMessage rule =
             updateMessage { rule | why = value }
     in
         Html.form [ styles [ display tableRow ], class "table-active", onSubmit <| saveMessage rule ]
-            [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From", onInput updateFrom ] [] ]
-            , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To", onInput updateTo ] [] ]
-            , span [ styles cellStyles ] [ input [ type_ "checkbox", checked rule.isRegex, onClick updateIsRegex ] [] ]
+            [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From", onInput updateFrom, styles [ Css.width <| pct 100 ] ] [] ]
+            , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To", onInput updateTo, styles [ Css.width <| pct 100 ] ] [] ]
+            , span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", checked rule.isRegex, onClick updateIsRegex ] [] ]
             , span [ styles cellStyles ]
                 [ select [ class "form-control", onInput updateVariety ]
                     [ option [ value << toString <| Permanent, (selected (rule.variety == Permanent)) ] [ text << toString <| Permanent ]
                     , option [ value << toString <| Temporary, (selected (rule.variety == Temporary)) ] [ text << toString <| Temporary ]
                     ]
                 ]
-            , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why", onInput updateWhy ] [] ]
+            , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why", onInput updateWhy, styles [ Css.width <| pct 100 ] ] [] ]
             , span [ styles cellStyles ] []
             , span [ styles cellStyles ] []
             , span [ styles cellStyles ] []
@@ -164,19 +187,23 @@ viewAddRuleRow cancelMessage saveMessage updateMessage rule =
 
 
 viewRuleRow startEdit rule =
-    tr []
-        [ td [] [ text rule.from ]
-        , td [] [ text rule.to ]
-        , td [] [ input [ type_ "checkbox", disabled True, checked rule.isRegex ] [] ]
-        , td [] [ text <| toString <| rule.variety ]
-        , td [] [ text rule.why ]
-        , td [] [ text rule.who ]
-        , td [] [ text <| dateToString <| rule.created ]
-        , td [] [ text <| dateToString <| rule.updated ]
-        , td []
-            [ button [ class "btn btn-link", onClick <| startEdit ] [ text "Edit" ]
+    let
+        cell extraStyles =
+            td [ styles <| [ minWidth <| px 200 ] ++ extraStyles ]
+    in
+        tr []
+            [ cell [ wordBreakAll ] [ text rule.from ]
+            , cell [ wordBreakAll ] [ text rule.to ]
+            , cell [ textAlign center ] [ input [ type_ "checkbox", disabled True, checked rule.isRegex ] [] ]
+            , cell [] [ text <| toString <| rule.variety ]
+            , cell [ wordBreakAll ] [ text rule.why ]
+            , cell [] [ text rule.who ]
+            , cell [] [ text <| dateToString <| rule.created ]
+            , cell [] [ text <| dateToString <| rule.updated ]
+            , cell [ minWidth <| px 250 ]
+                [ button [ class "btn btn-link", onClick <| startEdit ] [ text "Edit" ]
+                ]
             ]
-        ]
 
 
 viewRuleEditRow : msg -> (Rule -> msg) -> msg -> msg -> Rule -> Html msg
@@ -199,16 +226,16 @@ viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
             updateRule { rule | why = value }
     in
         Html.form [ styles [ display tableRow ], class "table-active", onSubmit requestUpdateRule ]
-            [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From" ] [] ]
-            , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To" ] [] ]
-            , span [ styles cellStyles ] [ input [ type_ "checkbox", checked rule.isRegex ] [] ]
+            [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From", styles [ Css.width <| pct 100 ] ] [] ]
+            , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To", styles [ Css.width <| pct 100 ] ] [] ]
+            , span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", checked rule.isRegex ] [] ]
             , span [ styles cellStyles ]
                 [ select [ class "form-control" ]
                     [ option [ value << toString <| Permanent ] [ text << toString <| Permanent ]
                     , option [ value << toString <| Temporary ] [ text << toString <| Temporary ]
                     ]
                 ]
-            , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why" ] [] ]
+            , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why", styles [ Css.width <| pct 100 ] ] [] ]
             , span [ styles cellStyles ] [ text rule.who ]
             , span [ styles cellStyles ] [ text <| dateToString <| rule.created ]
             , span [ styles cellStyles ] [ text <| dateToString <| rule.updated ]
