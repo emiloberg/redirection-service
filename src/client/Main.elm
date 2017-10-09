@@ -5,11 +5,6 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Date exposing (Date)
-import Date.Extra.Format as Format exposing (format)
-import Date.Extra.Config.Config_en_us exposing (config)
-import Json.Encode as Encode
-import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline
 import Rule exposing (..)
 import Flash exposing (..)
 import Time
