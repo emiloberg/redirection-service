@@ -31,6 +31,7 @@ import Css
         , spaceBetween
         , textAlign
         , center
+        , marginLeft
         )
 
 
@@ -66,6 +67,7 @@ type alias Model =
     , showAddRule : Bool
     , flash : List Flash
     , filterText : Maybe String
+    , showAllColumns : Bool
     }
 
 
@@ -85,6 +87,7 @@ type Msg
     | ResultDeleteRule (Result Http.Error RuleId)
     | HideFlash
     | UpdateFilter String
+    | ToggleShowAllCols
 
 
 type Direction
@@ -298,6 +301,9 @@ update msg model =
             UpdateFilter text ->
                 ( { model | filterText = Just text }, Cmd.none )
 
+            ToggleShowAllCols ->
+                ( { model | showAllColumns = not model.showAllColumns }, Cmd.none )
+
 
 
 -- Todo empty input fields here
@@ -331,9 +337,9 @@ viewRuleTable model addRuleRows =
 
         ruleToRow rule =
             if shouldBeEditable rule then
-                viewRuleEditRow (EditRule emptyRule) UpdateEditRule RequestUpdateRule (RequestDeleteRule rule.ruleId) model.ruleToEdit
+                viewRuleEditRow model.showAllColumns (EditRule emptyRule) UpdateEditRule RequestUpdateRule (RequestDeleteRule rule.ruleId) model.ruleToEdit
             else
-                viewRuleRow (EditRule rule) rule
+                viewRuleRow model.showAllColumns (EditRule rule) rule
 
         filteredRules =
             case model.filterText of
@@ -347,21 +353,29 @@ viewRuleTable model addRuleRows =
             filteredRules
                 |> sortByColumn model.sortColumn model.sortDirection
                 |> List.map ruleToRow
+
+        primaryCols =
+            [ th [ onClick <| SortByColumn From ] [ text <| "From" ++ showArrow From ]
+            , th [ onClick <| SortByColumn To ] [ text <| "To" ++ showArrow To ]
+            , th [ onClick <| SortByColumn IsRegex, styles [ textAlign center ] ] [ text <| "Pattern" ++ showArrow IsRegex ]
+            , th [ onClick <| SortByColumn Variety ] [ text <| "Variety" ++ showArrow Variety ]
+            , th [ onClick <| SortByColumn Why ] [ text <| "Why" ++ showArrow Why ]
+            ]
+
+        extraCols =
+            if model.showAllColumns then
+                [ th [ onClick <| SortByColumn Who ] [ text <| "Who" ++ showArrow Who ]
+                , th [ onClick <| SortByColumn Created ] [ text <| "Created" ++ showArrow Created ]
+                , th [ onClick <| SortByColumn Updated ] [ text <| "Updated" ++ showArrow Updated ]
+                ]
+            else
+                []
+
+        cols =
+            primaryCols ++ extraCols ++ [ th [] [ text "Actions" ] ]
     in
         table [ class "table" ]
-            [ thead []
-                [ tr []
-                    [ th [ onClick <| SortByColumn From ] [ text <| "From" ++ showArrow From ]
-                    , th [ onClick <| SortByColumn To ] [ text <| "To" ++ showArrow To ]
-                    , th [ onClick <| SortByColumn IsRegex, styles [ textAlign center ] ] [ text <| "Pattern" ++ showArrow IsRegex ]
-                    , th [ onClick <| SortByColumn Variety ] [ text <| "Variety" ++ showArrow Variety ]
-                    , th [ onClick <| SortByColumn Why ] [ text <| "Why" ++ showArrow Why ]
-                    , th [ onClick <| SortByColumn Who ] [ text <| "Who" ++ showArrow Who ]
-                    , th [ onClick <| SortByColumn Created ] [ text <| "Created" ++ showArrow Created ]
-                    , th [ onClick <| SortByColumn Updated ] [ text <| "Updated" ++ showArrow Updated ]
-                    , th [] [ text "Actions" ]
-                    ]
-                ]
+            [ thead [] [ tr [] cols ]
             , tbody [] (addRuleRows ++ ruleRows)
             ]
 
@@ -371,7 +385,7 @@ view model =
     let
         addRuleRows =
             if model.showAddRule then
-                [ viewAddRuleRow CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
+                [ viewAddRuleRow model.showAllColumns CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
             else
                 []
 
@@ -395,9 +409,14 @@ view model =
             { model | filterText = value }
 
         actionBar =
-            div [ styles [ displayFlex, justifyContent spaceBetween, alignItems center ] ]
-                [ input [ value <| withDefault "" model.filterText, placeholder "Filter", autofocus True, onInput UpdateFilter ] []
-                , newButton [ text "＋" ]
+            div []
+                [ label []
+                    [ text "Show all columns:", input [ type_ "checkbox", value <| toString model.showAllColumns, styles [ marginLeft <| px 5 ], onClick ToggleShowAllCols ] [] ]
+                , div
+                    [ styles [ displayFlex, justifyContent spaceBetween, alignItems center ] ]
+                    [ input [ value <| withDefault "" model.filterText, placeholder "Filter", autofocus True, onInput UpdateFilter ] []
+                    , newButton [ text "＋" ]
+                    ]
                 ]
     in
         layout
@@ -429,6 +448,7 @@ init =
       , showAddRule = False
       , flash = []
       , filterText = Nothing
+      , showAllColumns = False
       }
     , Cmd.batch
         [ Http.send FetchedRules getRules

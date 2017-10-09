@@ -146,8 +146,8 @@ validateRule rule =
             |> andThen (validate WhyIsTooShort (.why >> isShort >> not))
 
 
-viewAddRuleRow : msg -> (MutationRule -> msg) -> (MutationRule -> msg) -> MutationRule -> Html msg
-viewAddRuleRow cancelMessage saveMessage updateMessage rule =
+viewAddRuleRow : Bool -> msg -> (MutationRule -> msg) -> (MutationRule -> msg) -> MutationRule -> Html msg
+viewAddRuleRow showAll cancelMessage saveMessage updateMessage rule =
     let
         updateFrom value =
             updateMessage { rule | from = value }
@@ -164,8 +164,8 @@ viewAddRuleRow cancelMessage saveMessage updateMessage rule =
 
         updateWhy value =
             updateMessage { rule | why = value }
-    in
-        Html.form [ styles [ display tableRow ], class "table-active", onSubmit <| saveMessage rule ]
+
+        primaryCols =
             [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From", onInput updateFrom, styles [ Css.width <| pct 100 ] ] [] ]
             , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To", onInput updateTo, styles [ Css.width <| pct 100 ] ] [] ]
             , span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", checked rule.isRegex, onClick updateIsRegex ] [] ]
@@ -176,38 +176,67 @@ viewAddRuleRow cancelMessage saveMessage updateMessage rule =
                     ]
                 ]
             , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why", onInput updateWhy, styles [ Css.width <| pct 100 ] ] [] ]
-            , span [ styles cellStyles ] []
-            , span [ styles cellStyles ] []
-            , span [ styles cellStyles ] []
-            , span [ styles cellStyles ]
+            ]
+
+        extraCols =
+            if showAll then
+                [ span [ styles cellStyles ] []
+                , span [ styles cellStyles ] []
+                , span [ styles cellStyles ] []
+                ]
+            else
+                []
+
+        actionCols =
+            [ span [ styles cellStyles ]
                 [ a [ href "#", class "btn btn-success", styles [ marginRight (px 5) ], onClick <| saveMessage rule ] [ text "Save" ]
                 , a [ href "#", class "btn btn-outline-secondary", onClick <| cancelMessage ] [ text "Cancel" ]
                 ]
             ]
 
+        cols =
+            primaryCols ++ extraCols ++ actionCols
+    in
+        Html.form [ styles [ display tableRow ], class "table-active", onSubmit <| saveMessage rule ] cols
 
-viewRuleRow startEdit rule =
+
+viewRuleRow : Bool -> msg -> Rule -> Html msg
+viewRuleRow showAll startEdit rule =
     let
         cell extraStyles =
             td [ styles <| [ minWidth <| px 200 ] ++ extraStyles ]
-    in
-        tr []
+
+        primaryCols =
             [ cell [ wordBreakAll ] [ text rule.from ]
             , cell [ wordBreakAll ] [ text rule.to ]
             , cell [ textAlign center ] [ input [ type_ "checkbox", disabled True, checked rule.isRegex ] [] ]
             , cell [] [ text <| toString <| rule.variety ]
             , cell [ wordBreakAll ] [ text rule.why ]
-            , cell [] [ text rule.who ]
-            , cell [] [ text <| dateToString <| rule.created ]
-            , cell [] [ text <| dateToString <| rule.updated ]
-            , cell [ minWidth <| px 250 ]
+            ]
+
+        extraCols =
+            if showAll then
+                [ cell [] [ text rule.who ]
+                , cell [] [ text <| dateToString <| rule.created ]
+                , cell [] [ text <| dateToString <| rule.updated ]
+                ]
+            else
+                []
+
+        actionCols =
+            [ cell [ minWidth <| px 250 ]
                 [ button [ class "btn btn-link", onClick <| startEdit ] [ text "Edit" ]
                 ]
             ]
 
+        cols =
+            primaryCols ++ extraCols ++ actionCols
+    in
+        tr [] cols
 
-viewRuleEditRow : msg -> (Rule -> msg) -> msg -> msg -> Rule -> Html msg
-viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
+
+viewRuleEditRow : Bool -> msg -> (Rule -> msg) -> msg -> msg -> Rule -> Html msg
+viewRuleEditRow showAll cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
     let
         updateFrom value =
             updateRule { rule | from = value }
@@ -224,8 +253,8 @@ viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
 
         updateWhy value =
             updateRule { rule | why = value }
-    in
-        Html.form [ styles [ display tableRow ], class "table-active", onSubmit requestUpdateRule ]
+
+        primaryCols =
             [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From", styles [ Css.width <| pct 100 ] ] [] ]
             , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To", styles [ Css.width <| pct 100 ] ] [] ]
             , span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", checked rule.isRegex ] [] ]
@@ -236,15 +265,29 @@ viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
                     ]
                 ]
             , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why", styles [ Css.width <| pct 100 ] ] [] ]
-            , span [ styles cellStyles ] [ text rule.who ]
-            , span [ styles cellStyles ] [ text <| dateToString <| rule.created ]
-            , span [ styles cellStyles ] [ text <| dateToString <| rule.updated ]
-            , span [ styles cellStyles ]
+            ]
+
+        extraCols =
+            if showAll then
+                [ span [ styles cellStyles ] [ text rule.who ]
+                , span [ styles cellStyles ] [ text <| dateToString <| rule.created ]
+                , span [ styles cellStyles ] [ text <| dateToString <| rule.updated ]
+                ]
+            else
+                []
+
+        actionCols =
+            [ span [ styles cellStyles ]
                 [ a [ href "#", class "btn btn-success", styles [ marginRight (px 5) ], onClick <| requestUpdateRule ] [ text "Save" ]
                 , a [ href "#", class "btn btn-outline-secondary", styles [ marginRight (px 5) ], onClick <| cancelEdit ] [ text "Cancel" ]
                 , a [ href "#", class "btn btn-outline-danger", onClick <| deleteRuleMsg ] [ text "Delete" ]
                 ]
             ]
+
+        cols =
+            primaryCols ++ extraCols ++ actionCols
+    in
+        Html.form [ styles [ display tableRow ], class "table-active", onSubmit requestUpdateRule ] cols
 
 
 rulesDecoder : Decoder (List Rule)
