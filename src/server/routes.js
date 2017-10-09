@@ -14,7 +14,7 @@ const logoSvg = fs.readFileSync(path.join(__dirname, "./logo.svg")).toString()
 const handleValidationError = (ctx, error) => {
   if (error.name == "SequelizeValidationError") {
     ctx.status = 422
-    ctx.body = error.message
+    ctx.body = error.errors[0].message
   } else {
     throw error
   }
