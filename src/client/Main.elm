@@ -236,14 +236,7 @@ update msg model =
                 ( { model | rules = rules }, Cmd.none )
 
             RequestAddRule rule ->
-                case validateRule rule of
-                    Ok rule ->
-                        ( model
-                        , Http.send ResultAddRule <| addRule rule
-                        )
-
-                    Err errorType ->
-                        setFlash model <| Warn (humanReadableRuleValidationError errorType)
+                ( model, Http.send ResultAddRule <| addRule rule )
 
             CancelAddRule ->
                 ( { model | showAddRule = False }, Cmd.none )

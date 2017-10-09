@@ -112,40 +112,6 @@ type RuleValidationError
     | WhyIsTooShort
 
 
-validateRule : MutationRule -> Result RuleValidationError MutationRule
-validateRule rule =
-    let
-        validate validationError isValid rule =
-            if (isValid rule) then
-                Ok rule
-            else
-                Err validationError
-
-        isPath =
-            contains <| regex "^(\\/[^\\s\\/]+)+$"
-
-        isUrl =
-            contains <| regex "(http(s)?:\\/\\/.)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)"
-
-        oneOf validators value =
-            let
-                validations =
-                    List.map ((|>) value) validators
-            in
-                foldl (||) False validations
-
-        isShort str =
-            String.length str < 20
-    in
-        Ok rule
-            |> andThen (validate FromIsEmpty (.from >> String.isEmpty >> not))
-            |> andThen (validate FromIsNotAPath (oneOf [ .from >> isPath, .isRegex ]))
-            |> andThen (validate ToIsEmpty (.to >> String.isEmpty >> not))
-            |> andThen (validate ToIsNotAUri (oneOf [ .to >> isPath, .to >> isUrl, .isRegex ]))
-            |> andThen (validate WhyIsEmpty (.why >> String.isEmpty >> not))
-            |> andThen (validate WhyIsTooShort (.why >> isShort >> not))
-
-
 viewAddRuleRow : Bool -> msg -> (MutationRule -> msg) -> (MutationRule -> msg) -> MutationRule -> Html msg
 viewAddRuleRow showAll cancelMessage saveMessage updateMessage rule =
     let
