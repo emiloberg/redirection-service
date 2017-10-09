@@ -13,17 +13,33 @@ const Rule = sequelize.define(
     id: { type: Sequelize.INTEGER, primaryKey: true },
     from: {
       type: Sequelize.STRING,
+      allowNull: false,
       validate: {
-        is: PATH_REGEX
+        path(value) {
+          if (this.isRegex) {
+            return 
+          }
+
+          if (!PATH_REGEX.test(value)) {
+            throw new Error(
+              '"From" has to be a path (e.g. "/foo/bar").'
+            )
+          }
+        }
       }
     },
     to: {
       type: Sequelize.STRING,
+      allowNull: false,
       validate: {
         pathOrUri(value) {
+          if (this.isRegex) {
+            return 
+          }
+
           if (!PATH_REGEX.test(value) && !URI_REGEX.test(value)) {
             throw new Error(
-              'Value has to be either a path (e.g. "/foo/bar") or a URI (e.g. "http://foo.bar/baz")'
+              '"To" has to be either a path (e.g. "/foo/bar") or a URI (e.g. "http://foo.bar/baz").'
             )
           }
         }
@@ -31,18 +47,29 @@ const Rule = sequelize.define(
     },
     kind: {
       type: Sequelize.STRING,
+      allowNull: false,
       validate: {
-        isIn: [["Temporary", "Permanent"]]
+        isIn: {
+          args: [["Temporary", "Permanent"]],
+          msg: 'The only valid types are "Temporary" and "Permanent".'
+        }
       }
     },
     why: {
       type: Sequelize.STRING,
+      allowNull: false,
       validate: {
-        len: [20]
+        len: {
+          args: [20],
+          msg: "Please elaborate on the purpose of the rule."
+        },
+        asdf() {
+          console.log("Why:", this.why)
+        }
       }
     },
-    who: { type: Sequelize.STRING },
-    isRegex: { type: Sequelize.BOOLEAN, field: "is_regex" }
+    who: { type: Sequelize.STRING, allowNull: false },
+    isRegex: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: false, field: "is_regex" }
   },
   {
     createdAt: "created",
