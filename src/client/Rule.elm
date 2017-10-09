@@ -10,11 +10,7 @@ import Html.Events exposing (onClick, onInput, onSubmit)
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline
-import Debug
 import Result exposing (andThen)
-import Regex exposing (contains, regex)
-import List exposing (foldl)
-import Css.Colors exposing (teal, yellow)
 import Util exposing (styles)
 import Css
     exposing
@@ -38,6 +34,7 @@ import Css
         )
 
 
+wordBreakAll : Css.Style
 wordBreakAll =
     Css.property "word-break" "break-all"
 
@@ -74,6 +71,7 @@ type alias MutationRule =
     }
 
 
+cellStyles : List Css.Style
 cellStyles =
     [ display tableCell, padding (Css.rem 0.75), verticalAlign top, borderTop3 (px 1) solid (hex "e9ecef") ]
 
@@ -318,6 +316,7 @@ addRule mutationRule =
             ruleDecoder
 
 
+expectNothing : Http.Expect ()
 expectNothing =
     Http.expectStringResponse (\_ -> Ok ())
 
