@@ -49,7 +49,7 @@ type Column
     = From
     | To
     | IsRegex
-    | Variety
+    | Kind
     | Why
     | Who
     | Created
@@ -142,8 +142,8 @@ sortByColumn column direction rules =
                 IsRegex ->
                     .isRegex >> toString
 
-                Variety ->
-                    .variety >> toString
+                Kind ->
+                    .kind >> toString
 
                 Why ->
                     .why
@@ -343,7 +343,7 @@ viewRuleTable model addRuleRows =
             [ th [ onClick <| SortByColumn From ] [ text <| "From" ++ showArrow From ]
             , th [ onClick <| SortByColumn To ] [ text <| "To" ++ showArrow To ]
             , th [ onClick <| SortByColumn IsRegex, styles [ textAlign center ] ] [ text <| "Pattern" ++ showArrow IsRegex ]
-            , th [ onClick <| SortByColumn Variety ] [ text <| "Variety" ++ showArrow Variety ]
+            , th [ onClick <| SortByColumn Kind ] [ text <| "Kind" ++ showArrow Kind ]
             , th [ onClick <| SortByColumn Why ] [ text <| "Why" ++ showArrow Why ]
             ]
 

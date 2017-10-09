@@ -39,7 +39,7 @@ wordBreakAll =
     Css.property "word-break" "break-all"
 
 
-type Variety
+type Kind
     = Permanent
     | Temporary
 
@@ -52,7 +52,7 @@ type alias Rule =
     { ruleId : RuleId
     , from : String
     , to : String
-    , variety : Variety
+    , kind : Kind
     , why : String
     , who : String
     , isRegex : Bool
@@ -64,7 +64,7 @@ type alias Rule =
 type alias MutationRule =
     { from : String
     , to : String
-    , variety : Variety
+    , kind : Kind
     , why : String
     , who : String
     , isRegex : Bool
@@ -76,8 +76,8 @@ cellStyles =
     [ display tableCell, padding (Css.rem 0.75), verticalAlign top, borderTop3 (px 1) solid (hex "e9ecef") ]
 
 
-strToVariety : String -> Variety
-strToVariety str =
+strToKind : String -> Kind
+strToKind str =
     if str == "Temporary" then
         Temporary
     else if str == "Permanent" then
@@ -123,8 +123,8 @@ viewAddRuleRow showAll cancelMessage saveMessage updateMessage rule =
             updateMessage
                 { rule | isRegex = not rule.isRegex }
 
-        updateVariety value =
-            updateMessage { rule | variety = (strToVariety value) }
+        updateKind value =
+            updateMessage { rule | kind = (strToKind value) }
 
         updateWhy value =
             updateMessage { rule | why = value }
@@ -134,9 +134,9 @@ viewAddRuleRow showAll cancelMessage saveMessage updateMessage rule =
             , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To", onInput updateTo, styles [ Css.width <| pct 100 ] ] [] ]
             , span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", checked rule.isRegex, onClick updateIsRegex ] [] ]
             , span [ styles cellStyles ]
-                [ select [ class "form-control", onInput updateVariety ]
-                    [ option [ value << toString <| Permanent, (selected (rule.variety == Permanent)) ] [ text << toString <| Permanent ]
-                    , option [ value << toString <| Temporary, (selected (rule.variety == Temporary)) ] [ text << toString <| Temporary ]
+                [ select [ class "form-control", onInput updateKind ]
+                    [ option [ value << toString <| Permanent, (selected (rule.kind == Permanent)) ] [ text << toString <| Permanent ]
+                    , option [ value << toString <| Temporary, (selected (rule.kind == Temporary)) ] [ text << toString <| Temporary ]
                     ]
                 ]
             , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why", onInput updateWhy, styles [ Css.width <| pct 100 ] ] [] ]
@@ -174,7 +174,7 @@ viewRuleRow showAll startEdit rule =
             [ cell [ wordBreakAll ] [ text rule.from ]
             , cell [ wordBreakAll ] [ text rule.to ]
             , cell [ textAlign center ] [ input [ type_ "checkbox", disabled True, checked rule.isRegex ] [] ]
-            , cell [] [ text <| toString <| rule.variety ]
+            , cell [] [ text <| toString <| rule.kind ]
             , cell [ wordBreakAll ] [ text rule.why ]
             ]
 
@@ -212,8 +212,8 @@ viewRuleEditRow showAll cancelEdit updateRule requestUpdateRule deleteRuleMsg ru
             updateRule
                 { rule | isRegex = not rule.isRegex }
 
-        updateVariety value =
-            updateRule { rule | variety = (strToVariety value) }
+        updateKind value =
+            updateRule { rule | kind = (strToKind value) }
 
         updateWhy value =
             updateRule { rule | why = value }
@@ -223,7 +223,7 @@ viewRuleEditRow showAll cancelEdit updateRule requestUpdateRule deleteRuleMsg ru
             , span [ styles cellStyles ] [ input [ value rule.to, onInput updateTo, placeholder "To", styles [ Css.width <| pct 100 ] ] [] ]
             , span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", onClick updateIsRegex, checked rule.isRegex ] [] ]
             , span [ styles cellStyles ]
-                [ select [ class "form-control", onInput updateVariety ]
+                [ select [ class "form-control", onInput updateKind ]
                     [ option [ value << toString <| Permanent ] [ text << toString <| Permanent ]
                     , option [ value << toString <| Temporary ] [ text << toString <| Temporary ]
                     ]
@@ -259,9 +259,9 @@ rulesDecoder =
     Decode.list ruleDecoder
 
 
-varietyDecoder : Decoder Variety
-varietyDecoder =
-    Decode.map strToVariety Decode.string
+kindDecoder : Decoder Kind
+kindDecoder =
+    Decode.map strToKind Decode.string
 
 
 dateDecoder : Decoder Date
@@ -285,7 +285,7 @@ ruleDecoder =
         |> Json.Decode.Pipeline.required "id" Decode.int
         |> Json.Decode.Pipeline.required "from" Decode.string
         |> Json.Decode.Pipeline.required "to" Decode.string
-        |> Json.Decode.Pipeline.required "kind" varietyDecoder
+        |> Json.Decode.Pipeline.required "kind" kindDecoder
         |> Json.Decode.Pipeline.required "why" Decode.string
         |> Json.Decode.Pipeline.required "who" Decode.string
         |> Json.Decode.Pipeline.required "isRegex" Decode.bool
@@ -306,7 +306,7 @@ addRule mutationRule =
                 Encode.object
                     [ ( "from", Encode.string mutationRule.from )
                     , ( "to", Encode.string mutationRule.to )
-                    , ( "kind", Encode.string (toString mutationRule.variety) )
+                    , ( "kind", Encode.string (toString mutationRule.kind) )
                     , ( "why", Encode.string mutationRule.why )
                     , ( "isRegex", Encode.bool mutationRule.isRegex )
                     ]
@@ -329,7 +329,7 @@ updateRule rule =
                 Encode.object
                     [ ( "from", Encode.string rule.from )
                     , ( "to", Encode.string rule.to )
-                    , ( "kind", Encode.string (toString rule.variety) )
+                    , ( "kind", Encode.string (toString rule.kind) )
                     , ( "why", Encode.string rule.why )
                     , ( "isRegex", Encode.bool rule.isRegex )
                     ]
