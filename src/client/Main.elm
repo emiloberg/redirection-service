@@ -61,7 +61,6 @@ type alias Model =
     , sortColumn : Column
     , sortDirection : Direction
     , ruleToEdit : Rule
-    , ruleToEditIsValid : Bool
     , ruleToAdd : MutationRule
     , ruleToAddIsValid : Bool
     , showAddRule : Bool
@@ -220,15 +219,8 @@ update msg model =
                 ( { model | ruleToEdit = rule }, Cmd.none )
 
             RequestUpdateRule ->
-                -- todo add validation
-                --                case validateRule model.rule of
-                --                    Ok rule ->
-                ( model
-                , Http.send ResultUpdateRule (updateRule model.ruleToEdit)
-                )
+                ( model, Http.send ResultUpdateRule (updateRule model.ruleToEdit) )
 
-            --                    Err errorType ->
-            --                        setFlash model <| Warn (humanReadableRuleValidationError errorType)
             FetchedRules (Err error) ->
                 Debug.crash (toString error)
 
@@ -435,7 +427,6 @@ init =
       , sortColumn = From
       , sortDirection = Ascending
       , ruleToEdit = emptyRule
-      , ruleToEditIsValid = False
       , ruleToAdd = emptyMutationRule
       , ruleToAddIsValid = False
       , showAddRule = False

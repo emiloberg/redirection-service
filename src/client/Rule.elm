@@ -221,16 +221,16 @@ viewRuleEditRow showAll cancelEdit updateRule requestUpdateRule deleteRuleMsg ru
             updateRule { rule | why = value }
 
         primaryCols =
-            [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From", styles [ Css.width <| pct 100 ] ] [] ]
-            , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To", styles [ Css.width <| pct 100 ] ] [] ]
-            , span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", checked rule.isRegex ] [] ]
+            [ span [ styles cellStyles ] [ input [ value rule.from, onInput updateFrom, placeholder "From", styles [ Css.width <| pct 100 ] ] [] ]
+            , span [ styles cellStyles ] [ input [ value rule.to, onInput updateTo, placeholder "To", styles [ Css.width <| pct 100 ] ] [] ]
+            , span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", onClick updateIsRegex, checked rule.isRegex ] [] ]
             , span [ styles cellStyles ]
-                [ select [ class "form-control" ]
+                [ select [ class "form-control", onInput updateVariety ]
                     [ option [ value << toString <| Permanent ] [ text << toString <| Permanent ]
                     , option [ value << toString <| Temporary ] [ text << toString <| Temporary ]
                     ]
                 ]
-            , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why", styles [ Css.width <| pct 100 ] ] [] ]
+            , span [ styles cellStyles ] [ input [ value rule.why, onInput updateWhy, placeholder "Why", styles [ Css.width <| pct 100 ] ] [] ]
             ]
 
         extraCols =
@@ -244,9 +244,9 @@ viewRuleEditRow showAll cancelEdit updateRule requestUpdateRule deleteRuleMsg ru
 
         actionCols =
             [ span [ styles cellStyles ]
-                [ a [ href "#", class "btn btn-success", styles [ marginRight (px 5) ], onClick <| requestUpdateRule ] [ text "Save" ]
-                , a [ href "#", class "btn btn-outline-secondary", styles [ marginRight (px 5) ], onClick <| cancelEdit ] [ text "Cancel" ]
-                , a [ href "#", class "btn btn-outline-danger", onClick <| deleteRuleMsg ] [ text "Delete" ]
+                [ a [ href "#", class "btn btn-success", styles [ marginRight (px 5) ], onClick requestUpdateRule ] [ text "Save" ]
+                , a [ href "#", class "btn btn-outline-secondary", styles [ marginRight (px 5) ], onClick cancelEdit ] [ text "Cancel" ]
+                , a [ href "#", class "btn btn-outline-danger", onClick deleteRuleMsg ] [ text "Delete" ]
                 ]
             ]
 
