@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import Http
+import Http exposing (Error(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
@@ -178,6 +178,28 @@ sortByColumn column direction rules =
         rules |> List.sortBy sorter |> maybeReverse direction
 
 
+handleError : Model -> Http.Error -> ( Model, Cmd Msg )
+handleError model error =
+    case error of
+        BadUrl msg ->
+            setFlash model <| Error "The requested resource does not exist."
+
+        Timeout ->
+            setFlash model <| Error "The server took too long to answer."
+
+        NetworkError ->
+            setFlash model <| Error "The network is inaccessible."
+
+        BadStatus response ->
+            if String.isEmpty response.body then
+                setFlash model <| Error <| "Unable to complete operation."
+            else
+                setFlash model <| Error response.body
+
+        BadPayload msg response ->
+            setFlash model <| Error <| "Operation successful, but the response is malformed: " ++ response.body ++ "."
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
@@ -242,8 +264,8 @@ update msg model =
 
             ResultAddRule result ->
                 case result of
-                    Err msg ->
-                        setFlash model <| Error "Error adding rule."
+                    Err error ->
+                        handleError model error
 
                     Ok rule ->
                         setFlash
@@ -256,8 +278,8 @@ update msg model =
 
             ResultUpdateRule result ->
                 case result of
-                    Err msg ->
-                        setFlash model <| Error "Error updating rule."
+                    Err error ->
+                        handleError model error
 
                     Ok rule ->
                         setFlash
@@ -272,8 +294,8 @@ update msg model =
 
             ResultDeleteRule result ->
                 case result of
-                    Err msg ->
-                        setFlash model <| Error "Error deleting rule."
+                    Err error ->
+                        handleError model error
 
                     Ok ruleId ->
                         setFlash { model | rules = allRulesBut ruleId } <| Success "Rule deleted."
