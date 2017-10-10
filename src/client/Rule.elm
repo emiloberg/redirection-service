@@ -112,8 +112,14 @@ type RuleValidationError
     | WhyIsTooShort
 
 
-viewAddRuleRow : msg -> (MutationRule -> msg) -> (MutationRule -> msg) -> MutationRule -> Html msg
-viewAddRuleRow cancelMessage saveMessage updateMessage rule =
+getListOfCols : Dict String (Html msg) -> List Column -> List (Html msg)
+getListOfCols listOfAllCols displayColumns =
+    displayColumns
+        |> List.map (\col -> Maybe.withDefault (text "") (Dict.get (toString col) listOfAllCols))
+
+
+viewAddRuleRow : List Column -> msg -> (MutationRule -> msg) -> (MutationRule -> msg) -> MutationRule -> Html msg
+viewAddRuleRow displayColumns cancelMessage saveMessage updateMessage rule =
     let
         updateFrom value =
             updateMessage { rule | from = value }
@@ -131,24 +137,27 @@ viewAddRuleRow cancelMessage saveMessage updateMessage rule =
         updateWhy value =
             updateMessage { rule | why = value }
 
-        primaryCols =
-            [ span [ styles cellStyles ] [ input [ value rule.from, placeholder "From", onInput updateFrom, styles [ Css.width <| pct 100 ] ] [] ]
-            , span [ styles cellStyles ] [ input [ value rule.to, placeholder "To", onInput updateTo, styles [ Css.width <| pct 100 ] ] [] ]
-            , span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", checked rule.isRegex, onClick updateIsRegex ] [] ]
-            , span [ styles cellStyles ]
-                [ select [ class "form-control", onInput updateKind ]
-                    [ option [ value << toString <| Permanent, (selected (rule.kind == Permanent)) ] [ text << toString <| Permanent ]
-                    , option [ value << toString <| Temporary, (selected (rule.kind == Temporary)) ] [ text << toString <| Temporary ]
-                    ]
+        cells =
+            Dict.fromList
+                [ ( toString From, span [ styles cellStyles ] [ input [ value rule.from, placeholder "From", onInput updateFrom, styles [ Css.width <| pct 100 ] ] [] ] )
+                , ( toString To, span [ styles cellStyles ] [ input [ value rule.to, placeholder "To", onInput updateTo, styles [ Css.width <| pct 100 ] ] [] ] )
+                , ( toString IsRegex, span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", checked rule.isRegex, onClick updateIsRegex ] [] ] )
+                , ( toString Kind
+                  , span [ styles cellStyles ]
+                        [ select [ class "form-control", onInput updateKind ]
+                            [ option [ value << toString <| Permanent, (selected (rule.kind == Permanent)) ] [ text << toString <| Permanent ]
+                            , option [ value << toString <| Temporary, (selected (rule.kind == Temporary)) ] [ text << toString <| Temporary ]
+                            ]
+                        ]
+                  )
+                , ( toString Why, span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why", onInput updateWhy, styles [ Css.width <| pct 100 ] ] [] ] )
+                , ( toString Who, span [ styles cellStyles ] [] )
+                , ( toString Created, span [ styles cellStyles ] [] )
+                , ( toString Updated, span [ styles cellStyles ] [] )
                 ]
-            , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why", onInput updateWhy, styles [ Css.width <| pct 100 ] ] [] ]
-            ]
 
-        extraCols =
-            [ span [ styles cellStyles ] []
-            , span [ styles cellStyles ] []
-            , span [ styles cellStyles ] []
-            ]
+        cols =
+            getListOfCols cells displayColumns
 
         actionCols =
             [ span [ styles cellStyles ]
@@ -156,11 +165,8 @@ viewAddRuleRow cancelMessage saveMessage updateMessage rule =
                 , button [ type_ "button", class "btn btn-outline-secondary", onClick <| cancelMessage ] [ text "Cancel" ]
                 ]
             ]
-
-        cols =
-            primaryCols ++ extraCols ++ actionCols
     in
-        Html.form [ styles [ display tableRow ], class "table-active", onSubmit <| saveMessage rule ] cols
+        Html.form [ styles [ display tableRow ], class "table-active", onSubmit <| saveMessage rule ] (cols ++ actionCols)
 
 
 viewRuleRow : List Column -> msg -> Rule -> Html msg
@@ -182,8 +188,7 @@ viewRuleRow displayColumns startEdit rule =
                 ]
 
         cols =
-            displayColumns
-                |> List.map (\col -> Maybe.withDefault (text "") (Dict.get (toString col) cells))
+            getListOfCols cells displayColumns
 
         editCol =
             [ cell [ minWidth <| px 250 ]
@@ -194,8 +199,8 @@ viewRuleRow displayColumns startEdit rule =
         tr [] (cols ++ editCol)
 
 
-viewRuleEditRow : msg -> (Rule -> msg) -> msg -> msg -> Rule -> Html msg
-viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
+viewRuleEditRow : List Column -> msg -> (Rule -> msg) -> msg -> msg -> Rule -> Html msg
+viewRuleEditRow displayColumns cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
     let
         updateFrom value =
             updateRule { rule | from = value }
@@ -213,24 +218,27 @@ viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
         updateWhy value =
             updateRule { rule | why = value }
 
-        primaryCols =
-            [ span [ styles cellStyles ] [ input [ value rule.from, onInput updateFrom, placeholder "From", styles [ Css.width <| pct 100 ] ] [] ]
-            , span [ styles cellStyles ] [ input [ value rule.to, onInput updateTo, placeholder "To", styles [ Css.width <| pct 100 ] ] [] ]
-            , span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", onClick updateIsRegex, checked rule.isRegex ] [] ]
-            , span [ styles cellStyles ]
-                [ select [ class "form-control", onInput updateKind ]
-                    [ option [ value << toString <| Permanent ] [ text << toString <| Permanent ]
-                    , option [ value << toString <| Temporary ] [ text << toString <| Temporary ]
-                    ]
+        cells =
+            Dict.fromList
+                [ ( toString From, span [ styles cellStyles ] [ input [ value rule.from, onInput updateFrom, placeholder "From", styles [ Css.width <| pct 100 ] ] [] ] )
+                , ( toString To, span [ styles cellStyles ] [ input [ value rule.to, onInput updateTo, placeholder "To", styles [ Css.width <| pct 100 ] ] [] ] )
+                , ( toString IsRegex, span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", onClick updateIsRegex, checked rule.isRegex ] [] ] )
+                , ( toString Kind
+                  , span [ styles cellStyles ]
+                        [ select [ class "form-control", onInput updateKind ]
+                            [ option [ value << toString <| Permanent ] [ text << toString <| Permanent ]
+                            , option [ value << toString <| Temporary ] [ text << toString <| Temporary ]
+                            ]
+                        ]
+                  )
+                , ( toString Why, span [ styles cellStyles ] [ input [ value rule.why, onInput updateWhy, placeholder "Why", styles [ Css.width <| pct 100 ] ] [] ] )
+                , ( toString Who, span [ styles cellStyles ] [ text rule.who ] )
+                , ( toString Created, span [ styles cellStyles ] [ text <| dateToString <| rule.created ] )
+                , ( toString Updated, span [ styles cellStyles ] [ text <| dateToString <| rule.updated ] )
                 ]
-            , span [ styles cellStyles ] [ input [ value rule.why, onInput updateWhy, placeholder "Why", styles [ Css.width <| pct 100 ] ] [] ]
-            ]
 
-        extraCols =
-            [ span [ styles cellStyles ] [ text rule.who ]
-            , span [ styles cellStyles ] [ text <| dateToString <| rule.created ]
-            , span [ styles cellStyles ] [ text <| dateToString <| rule.updated ]
-            ]
+        cols =
+            getListOfCols cells displayColumns
 
         actionCols =
             [ span [ styles cellStyles ]
@@ -239,11 +247,8 @@ viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
                 , button [ type_ "button", class "btn btn-outline-danger", onClick deleteRuleMsg ] [ text "Delete" ]
                 ]
             ]
-
-        cols =
-            primaryCols ++ extraCols ++ actionCols
     in
-        Html.form [ styles [ display tableRow ], class "table-active", onSubmit requestUpdateRule ] cols
+        Html.form [ styles [ display tableRow ], class "table-active", onSubmit requestUpdateRule ] (cols ++ actionCols)
 
 
 rulesDecoder : Decoder (List Rule)

@@ -341,7 +341,7 @@ viewRuleTable model addRuleRows =
 
         ruleToRow rule =
             if shouldBeEditable rule then
-                viewRuleEditRow (EditRule emptyRule) UpdateEditRule RequestUpdateRule (RequestDeleteRule rule.ruleId) model.ruleToEdit
+                viewRuleEditRow model.displayColumns (EditRule emptyRule) UpdateEditRule RequestUpdateRule (RequestDeleteRule rule.ruleId) model.ruleToEdit
             else
                 viewRuleRow model.displayColumns (EditRule rule) rule
 
@@ -385,7 +385,7 @@ view model =
     let
         addRuleRows =
             if model.showAddRule then
-                [ viewAddRuleRow CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
+                [ viewAddRuleRow model.displayColumns CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
             else
                 []
 
