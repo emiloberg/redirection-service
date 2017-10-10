@@ -15,6 +15,7 @@ import Util exposing (styles)
 import Maybe exposing (withDefault)
 import String exposing (contains)
 import List exposing (drop)
+import Modal exposing (viewHelpModal, viewHelpButton)
 import Css
     exposing
         ( px
@@ -376,15 +377,18 @@ view model =
 
         layout children =
             div []
-                [ viewFlashes model.flash
+                [ viewHelpModal
+                , viewFlashes model.flash
                 , Header.header
                 , div [ styles [ padding <| px 20, displayFlex, flexDirection column ] ] children
                 ]
 
         notice =
             div [ class "jumbotron", styles [ padding2 (Css.rem 2) (Css.rem 1), marginBottom (px 20) ] ]
-                [ p [ class "lead" ] [ text "This service allow redirecting incoming traffic to izettle.com to any other path or url on the web." ]
+                [ p [ class "lead" ]
+                    [ text "This service allow redirecting incoming traffic to izettle.com to any other path or url on the web." ]
                 , p [] [ text "Note that any changes can take up to 10 minutes until taking effect." ]
+                , viewHelpButton
                 ]
 
         newButton =
