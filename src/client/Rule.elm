@@ -12,6 +12,8 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline
 import Result exposing (andThen)
 import Util exposing (styles)
+import Dict exposing (..)
+import Column exposing (..)
 import Css
     exposing
         ( display
@@ -110,8 +112,8 @@ type RuleValidationError
     | WhyIsTooShort
 
 
-viewAddRuleRow : Bool -> msg -> (MutationRule -> msg) -> (MutationRule -> msg) -> MutationRule -> Html msg
-viewAddRuleRow showAll cancelMessage saveMessage updateMessage rule =
+viewAddRuleRow : msg -> (MutationRule -> msg) -> (MutationRule -> msg) -> MutationRule -> Html msg
+viewAddRuleRow cancelMessage saveMessage updateMessage rule =
     let
         updateFrom value =
             updateMessage { rule | from = value }
@@ -143,13 +145,10 @@ viewAddRuleRow showAll cancelMessage saveMessage updateMessage rule =
             ]
 
         extraCols =
-            if showAll then
-                [ span [ styles cellStyles ] []
-                , span [ styles cellStyles ] []
-                , span [ styles cellStyles ] []
-                ]
-            else
-                []
+            [ span [ styles cellStyles ] []
+            , span [ styles cellStyles ] []
+            , span [ styles cellStyles ] []
+            ]
 
         actionCols =
             [ span [ styles cellStyles ]
@@ -164,43 +163,39 @@ viewAddRuleRow showAll cancelMessage saveMessage updateMessage rule =
         Html.form [ styles [ display tableRow ], class "table-active", onSubmit <| saveMessage rule ] cols
 
 
-viewRuleRow : Bool -> msg -> Rule -> Html msg
-viewRuleRow showAll startEdit rule =
+viewRuleRow : List Column -> msg -> Rule -> Html msg
+viewRuleRow displayColumns startEdit rule =
     let
         cell extraStyles =
             td [ styles <| [ minWidth <| px 200 ] ++ extraStyles ]
 
-        primaryCols =
-            [ cell [ wordBreakAll ] [ text rule.from ]
-            , cell [ wordBreakAll ] [ text rule.to ]
-            , cell [ textAlign center ] [ input [ type_ "checkbox", disabled True, checked rule.isRegex ] [] ]
-            , cell [] [ text <| toString <| rule.kind ]
-            , cell [ wordBreakAll ] [ text rule.why ]
-            ]
-
-        extraCols =
-            if showAll then
-                [ cell [] [ text rule.who ]
-                , cell [] [ text <| dateToString <| rule.created ]
-                , cell [] [ text <| dateToString <| rule.updated ]
+        cells =
+            Dict.fromList
+                [ ( toString From, cell [ wordBreakAll ] [ text rule.from ] )
+                , ( toString To, cell [ wordBreakAll ] [ text rule.to ] )
+                , ( toString IsRegex, cell [ textAlign center ] [ input [ type_ "checkbox", disabled True, checked rule.isRegex ] [] ] )
+                , ( toString Kind, cell [] [ text <| toString <| rule.kind ] )
+                , ( toString Why, cell [ wordBreakAll ] [ text rule.why ] )
+                , ( toString Who, cell [] [ text rule.who ] )
+                , ( toString Created, cell [] [ text <| dateToString <| rule.created ] )
+                , ( toString Updated, cell [] [ text <| dateToString <| rule.updated ] )
                 ]
-            else
-                []
 
-        actionCols =
+        cols =
+            displayColumns
+                |> List.map (\col -> Maybe.withDefault (text "") (Dict.get (toString col) cells))
+
+        editCol =
             [ cell [ minWidth <| px 250 ]
                 [ button [ type_ "button", class "btn btn-link", onClick <| startEdit ] [ text "Edit" ]
                 ]
             ]
-
-        cols =
-            primaryCols ++ extraCols ++ actionCols
     in
-        tr [] cols
+        tr [] (cols ++ editCol)
 
 
-viewRuleEditRow : Bool -> msg -> (Rule -> msg) -> msg -> msg -> Rule -> Html msg
-viewRuleEditRow showAll cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
+viewRuleEditRow : msg -> (Rule -> msg) -> msg -> msg -> Rule -> Html msg
+viewRuleEditRow cancelEdit updateRule requestUpdateRule deleteRuleMsg rule =
     let
         updateFrom value =
             updateRule { rule | from = value }
@@ -232,13 +227,10 @@ viewRuleEditRow showAll cancelEdit updateRule requestUpdateRule deleteRuleMsg ru
             ]
 
         extraCols =
-            if showAll then
-                [ span [ styles cellStyles ] [ text rule.who ]
-                , span [ styles cellStyles ] [ text <| dateToString <| rule.created ]
-                , span [ styles cellStyles ] [ text <| dateToString <| rule.updated ]
-                ]
-            else
-                []
+            [ span [ styles cellStyles ] [ text rule.who ]
+            , span [ styles cellStyles ] [ text <| dateToString <| rule.created ]
+            , span [ styles cellStyles ] [ text <| dateToString <| rule.updated ]
+            ]
 
         actionCols =
             [ span [ styles cellStyles ]

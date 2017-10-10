@@ -11,8 +11,10 @@ import Time
 import Task
 import Process
 import Header exposing (header)
-import Util exposing (styles)
+import Column exposing (..)
+import Util exposing (styles, anyListMember, removeFromList)
 import Maybe exposing (withDefault)
+import Dict exposing (..)
 import String exposing (contains)
 import List exposing (drop)
 import Modal exposing (viewHelpModal, viewHelpButton)
@@ -46,15 +48,9 @@ main =
         }
 
 
-type Column
-    = From
-    | To
-    | IsRegex
-    | Kind
-    | Why
-    | Who
-    | Created
-    | Updated
+extendedColumns : List Column
+extendedColumns =
+    [ Who, Created, Updated ]
 
 
 type alias Model =
@@ -67,7 +63,7 @@ type alias Model =
     , showAddRule : Bool
     , flash : List Flash
     , filterText : Maybe String
-    , showAllColumns : Bool
+    , displayColumns : List Column
     }
 
 
@@ -87,7 +83,8 @@ type Msg
     | ResultDeleteRule (Result Http.Error RuleId)
     | HideFlash
     | UpdateFilter String
-    | ToggleShowAllCols
+    | ToggleShowExtendedCols
+    | ToggleExpertMode
 
 
 type Direction
@@ -287,12 +284,33 @@ update msg model =
             UpdateFilter text ->
                 ( { model | filterText = Just text }, Cmd.none )
 
-            ToggleShowAllCols ->
-                ( { model | showAllColumns = not model.showAllColumns }, Cmd.none )
+            ToggleExpertMode ->
+                let
+                    isShowingextendedColumns =
+                        anyListMember extendedColumns model.displayColumns
 
+                    columnsWithoutextendedColumns =
+                        removeFromList extendedColumns model.displayColumns
 
+                    columns =
+                        if List.member IsRegex model.displayColumns then
+                            removeFromList [ IsRegex ] model.displayColumns
+                        else if isShowingextendedColumns then
+                            columnsWithoutextendedColumns ++ [ IsRegex ] ++ extendedColumns
+                        else
+                            columnsWithoutextendedColumns ++ [ IsRegex ]
+                in
+                    ( { model | displayColumns = columns }, Cmd.none )
 
--- Todo empty input fields here
+            ToggleShowExtendedCols ->
+                let
+                    columns =
+                        if anyListMember extendedColumns model.displayColumns then
+                            removeFromList extendedColumns model.displayColumns
+                        else
+                            model.displayColumns ++ extendedColumns
+                in
+                    ( { model | displayColumns = columns }, Cmd.none )
 
 
 viewRuleTable : Model -> List (Html Msg) -> Html Msg
@@ -323,9 +341,9 @@ viewRuleTable model addRuleRows =
 
         ruleToRow rule =
             if shouldBeEditable rule then
-                viewRuleEditRow model.showAllColumns (EditRule emptyRule) UpdateEditRule RequestUpdateRule (RequestDeleteRule rule.ruleId) model.ruleToEdit
+                viewRuleEditRow (EditRule emptyRule) UpdateEditRule RequestUpdateRule (RequestDeleteRule rule.ruleId) model.ruleToEdit
             else
-                viewRuleRow model.showAllColumns (EditRule rule) rule
+                viewRuleRow model.displayColumns (EditRule rule) rule
 
         filteredRules =
             case model.filterText of
@@ -340,28 +358,24 @@ viewRuleTable model addRuleRows =
                 |> sortByColumn model.sortColumn model.sortDirection
                 |> List.map ruleToRow
 
-        primaryCols =
-            [ th [ onClick <| SortByColumn From ] [ text <| "From" ++ showArrow From ]
-            , th [ onClick <| SortByColumn To ] [ text <| "To" ++ showArrow To ]
-            , th [ onClick <| SortByColumn IsRegex, styles [ textAlign center ] ] [ text <| "Pattern" ++ showArrow IsRegex ]
-            , th [ onClick <| SortByColumn Kind ] [ text <| "Kind" ++ showArrow Kind ]
-            , th [ onClick <| SortByColumn Why ] [ text <| "Why" ++ showArrow Why ]
-            ]
-
-        extraCols =
-            if model.showAllColumns then
-                [ th [ onClick <| SortByColumn Who ] [ text <| "Who" ++ showArrow Who ]
-                , th [ onClick <| SortByColumn Created ] [ text <| "Created" ++ showArrow Created ]
-                , th [ onClick <| SortByColumn Updated ] [ text <| "Updated" ++ showArrow Updated ]
+        cells =
+            Dict.fromList
+                [ ( toString From, th [ onClick <| SortByColumn From ] [ text <| "From" ++ showArrow From ] )
+                , ( toString To, th [ onClick <| SortByColumn To ] [ text <| "To" ++ showArrow To ] )
+                , ( toString IsRegex, th [ onClick <| SortByColumn IsRegex, styles [ textAlign center ] ] [ text <| "Pattern" ++ showArrow IsRegex ] )
+                , ( toString Kind, th [ onClick <| SortByColumn Kind ] [ text <| "Kind" ++ showArrow Kind ] )
+                , ( toString Why, th [ onClick <| SortByColumn Why ] [ text <| "Why" ++ showArrow Why ] )
+                , ( toString Who, th [ onClick <| SortByColumn Who ] [ text <| "Who" ++ showArrow Who ] )
+                , ( toString Created, th [ onClick <| SortByColumn Created ] [ text <| "Created" ++ showArrow Created ] )
+                , ( toString Updated, th [ onClick <| SortByColumn Updated ] [ text <| "Updated" ++ showArrow Updated ] )
                 ]
-            else
-                []
 
         cols =
-            primaryCols ++ extraCols ++ [ th [] [ text "Actions" ] ]
+            model.displayColumns
+                |> List.map (\col -> Maybe.withDefault (text "") (Dict.get (toString col) cells))
     in
         table [ class "table" ]
-            [ thead [] [ tr [] cols ]
+            [ thead [] [ tr [] (cols ++ [ th [] [ text "Actions" ] ]) ]
             , tbody [] (addRuleRows ++ ruleRows)
             ]
 
@@ -371,7 +385,7 @@ view model =
     let
         addRuleRows =
             if model.showAddRule then
-                [ viewAddRuleRow model.showAllColumns CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
+                [ viewAddRuleRow CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
             else
                 []
 
@@ -397,10 +411,20 @@ view model =
         updateFilterText value =
             { model | filterText = value }
 
+        shouldShowExtendedCols =
+            anyListMember extendedColumns model.displayColumns
+
+        isExpertMode =
+            List.member IsRegex model.displayColumns
+
         actionBar =
             div []
                 [ label []
-                    [ text "Show all columns:", input [ type_ "checkbox", value <| toString model.showAllColumns, styles [ marginLeft <| px 5 ], onClick ToggleShowAllCols ] [] ]
+                    [ text "Show all columns:"
+                    , input [ type_ "checkbox", checked shouldShowExtendedCols, styles [ marginLeft <| px 5 ], onClick ToggleShowExtendedCols ] []
+                    , text "Expert mode:"
+                    , input [ type_ "checkbox", checked isExpertMode, styles [ marginLeft <| px 5 ], onClick ToggleExpertMode ] []
+                    ]
                 , div
                     [ styles [ displayFlex, justifyContent spaceBetween, alignItems center ] ]
                     [ input [ value <| withDefault "" model.filterText, placeholder "Filter", autofocus True, onInput UpdateFilter ] []
@@ -436,7 +460,7 @@ init =
       , showAddRule = False
       , flash = []
       , filterText = Nothing
-      , showAllColumns = False
+      , displayColumns = [ From, To, Kind, Why ]
       }
     , Cmd.batch
         [ Http.send FetchedRules getRules
