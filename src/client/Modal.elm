@@ -26,7 +26,13 @@ viewHelpModal =
 
         body =
             div [ class "modal-body" ]
-                [ text "body"
+                [ p [ class "lead" ] [ text "There are two types of rules, plain and regex - you should probably use the former." ]
+                , h6 [ class "modal-title" ] [ text "Plain" ]
+                , p [] [ text "Plain rules simply map a path (e.g. \"/some/path\") on izettle.com to a different path or url." ]
+                , h6 [ class "modal-title" ] [ text "Regex" ]
+                , p [] [ text "Regex rules are for advanced path matching and bulk operations." ]
+                , h6 [ class "modal-title" ] [ text "Matching tokens" ]
+                , p [] [ text "There is a special token \"{country}\" which will match any valid lokale for izettle.com." ]
                 ]
 
         footer =
