@@ -153,8 +153,8 @@ viewAddRuleRow showAll cancelMessage saveMessage updateMessage rule =
 
         actionCols =
             [ span [ styles cellStyles ]
-                [ button [ class "btn btn-success", styles [ marginRight (px 5) ], onClick <| saveMessage rule ] [ text "Save" ]
-                , button [ class "btn btn-outline-secondary", onClick <| cancelMessage ] [ text "Cancel" ]
+                [ button [ type_ "button", class "btn btn-success", styles [ marginRight (px 5) ], onClick <| saveMessage rule ] [ text "Save" ]
+                , button [ type_ "button", class "btn btn-outline-secondary", onClick <| cancelMessage ] [ text "Cancel" ]
                 ]
             ]
 
@@ -189,7 +189,7 @@ viewRuleRow showAll startEdit rule =
 
         actionCols =
             [ cell [ minWidth <| px 250 ]
-                [ button [ class "btn btn-link", onClick <| startEdit ] [ text "Edit" ]
+                [ button [ type_ "button", class "btn btn-link", onClick <| startEdit ] [ text "Edit" ]
                 ]
             ]
 
@@ -242,9 +242,9 @@ viewRuleEditRow showAll cancelEdit updateRule requestUpdateRule deleteRuleMsg ru
 
         actionCols =
             [ span [ styles cellStyles ]
-                [ button [ class "btn btn-success", styles [ marginRight (px 5) ], onClick requestUpdateRule ] [ text "Save" ]
-                , button [ class "btn btn-outline-secondary", styles [ marginRight (px 5) ], onClick cancelEdit ] [ text "Cancel" ]
-                , button [ class "btn btn-outline-danger", onClick deleteRuleMsg ] [ text "Delete" ]
+                [ button [ type_ "button", class "btn btn-success", styles [ marginRight (px 5) ], onClick requestUpdateRule ] [ text "Save" ]
+                , button [ type_ "button", class "btn btn-outline-secondary", styles [ marginRight (px 5) ], onClick cancelEdit ] [ text "Cancel" ]
+                , button [ type_ "button", class "btn btn-outline-danger", onClick deleteRuleMsg ] [ text "Delete" ]
                 ]
             ]
 
