@@ -84,7 +84,7 @@ type Msg
     | HideFlash
     | UpdateFilter String
     | ToggleShowExtendedCols
-    | ToggleExpertMode
+    | ToggleShowRegex
 
 
 type Direction
@@ -284,21 +284,21 @@ update msg model =
             UpdateFilter text ->
                 ( { model | filterText = Just text }, Cmd.none )
 
-            ToggleExpertMode ->
+            ToggleShowRegex ->
                 let
-                    isShowingextendedColumns =
+                    showExtendedColumns =
                         anyListMember extendedColumns model.displayColumns
 
-                    columnsWithoutextendedColumns =
+                    columnsWithoutExtendedColumns =
                         removeFromList extendedColumns model.displayColumns
 
                     columns =
                         if List.member IsRegex model.displayColumns then
                             removeFromList [ IsRegex ] model.displayColumns
-                        else if isShowingextendedColumns then
-                            columnsWithoutextendedColumns ++ [ IsRegex ] ++ extendedColumns
+                        else if showExtendedColumns then
+                            columnsWithoutExtendedColumns ++ [ IsRegex ] ++ extendedColumns
                         else
-                            columnsWithoutextendedColumns ++ [ IsRegex ]
+                            columnsWithoutExtendedColumns ++ [ IsRegex ]
                 in
                     ( { model | displayColumns = columns }, Cmd.none )
 
@@ -414,7 +414,7 @@ view model =
         shouldShowExtendedCols =
             anyListMember extendedColumns model.displayColumns
 
-        isExpertMode =
+        showRegex =
             List.member IsRegex model.displayColumns
 
         actionBar =
@@ -423,7 +423,7 @@ view model =
                     [ text "Show all columns:"
                     , input [ type_ "checkbox", checked shouldShowExtendedCols, styles [ marginLeft <| px 5 ], onClick ToggleShowExtendedCols ] []
                     , text "Expert mode:"
-                    , input [ type_ "checkbox", checked isExpertMode, styles [ marginLeft <| px 5 ], onClick ToggleExpertMode ] []
+                    , input [ type_ "checkbox", checked showRegex, styles [ marginLeft <| px 5 ], onClick ToggleShowRegex ] []
                     ]
                 , div
                     [ styles [ displayFlex, justifyContent spaceBetween, alignItems center ] ]
