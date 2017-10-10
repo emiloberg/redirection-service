@@ -422,7 +422,9 @@ view model =
                 [ label []
                     [ text "Show all columns:"
                     , input [ type_ "checkbox", checked shouldShowExtendedCols, styles [ marginLeft <| px 5 ], onClick ToggleShowExtendedCols ] []
-                    , text "Expert mode:"
+                    ]
+                , label []
+                    [ text "Expert mode:"
                     , input [ type_ "checkbox", checked showRegex, styles [ marginLeft <| px 5 ], onClick ToggleShowRegex ] []
                     ]
                 , div
