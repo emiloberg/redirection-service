@@ -110,6 +110,16 @@ type RuleValidationError
     | WhyIsTooShort
 
 
+kindToString : Kind -> String
+kindToString variety =
+    case variety of
+        Permanent ->
+            "Permanent (301)"
+
+        Temporary ->
+            "Temporary (302)"
+
+
 viewAddRuleRow : Bool -> msg -> (MutationRule -> msg) -> (MutationRule -> msg) -> MutationRule -> Html msg
 viewAddRuleRow showAll cancelMessage saveMessage updateMessage rule =
     let
@@ -135,8 +145,8 @@ viewAddRuleRow showAll cancelMessage saveMessage updateMessage rule =
             , span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", checked rule.isRegex, onClick updateIsRegex ] [] ]
             , span [ styles cellStyles ]
                 [ select [ class "form-control", onInput updateKind ]
-                    [ option [ value << toString <| Permanent, (selected (rule.kind == Permanent)) ] [ text << toString <| Permanent ]
-                    , option [ value << toString <| Temporary, (selected (rule.kind == Temporary)) ] [ text << toString <| Temporary ]
+                    [ option [ value << toString <| Permanent, (selected (rule.kind == Permanent)) ] [ text <| kindToString Permanent ]
+                    , option [ value << toString <| Temporary, (selected (rule.kind == Temporary)) ] [ text <| kindToString Temporary ]
                     ]
                 ]
             , span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why", onInput updateWhy, styles [ Css.width <| pct 100 ] ] [] ]
@@ -174,7 +184,7 @@ viewRuleRow showAll startEdit rule =
             [ cell [ wordBreakAll ] [ text rule.from ]
             , cell [ wordBreakAll ] [ text rule.to ]
             , cell [ textAlign center ] [ input [ type_ "checkbox", disabled True, checked rule.isRegex ] [] ]
-            , cell [] [ text <| toString <| rule.kind ]
+            , cell [] [ text <| kindToString rule.kind ]
             , cell [ wordBreakAll ] [ text rule.why ]
             ]
 
@@ -224,8 +234,8 @@ viewRuleEditRow showAll cancelEdit updateRule requestUpdateRule deleteRuleMsg ru
             , span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", onClick updateIsRegex, checked rule.isRegex ] [] ]
             , span [ styles cellStyles ]
                 [ select [ class "form-control", onInput updateKind ]
-                    [ option [ value << toString <| Permanent ] [ text << toString <| Permanent ]
-                    , option [ value << toString <| Temporary ] [ text << toString <| Temporary ]
+                    [ option [ value << toString <| Permanent ] [ text <| kindToString Permanent ]
+                    , option [ value << toString <| Temporary ] [ text <| kindToString Temporary ]
                     ]
                 ]
             , span [ styles cellStyles ] [ input [ value rule.why, onInput updateWhy, placeholder "Why", styles [ Css.width <| pct 100 ] ] [] ]
