@@ -6,7 +6,8 @@ import Html.Attributes exposing (..)
 
 modalId : String
 modalId =
-    "helpModal"
+    -- An id to select and toggle the modal on. The random suffix makes conflicts unlikely.
+    "helpModal-9fec3a447441"
 
 
 viewHelpButton : Html msg
