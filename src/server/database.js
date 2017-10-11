@@ -5,6 +5,7 @@ const sequelize = new Sequelize(CONFIG.DATABASE_URL)
 
 const URI_REGEX = /^(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/i
 const PATH_REGEX = /^(\/[^\s\/]+)+$/i
+const COUNTRY_TOKEN_REGEX = /\{country\}/gi
 
 // NOTE: Remember to keep the validations below in sync with the client side validatinos in Rule.elm.
 const Rule = sequelize.define(
@@ -26,6 +27,11 @@ const Rule = sequelize.define(
           if (!PATH_REGEX.test(value)) {
             throw new Error('"From" has to be a path (e.g. "/foo/bar").')
           }
+        },
+        countryToken(value) {
+          if (!this.isRegex && COUNTRY_TOKEN_REGEX.test(value)) {
+            throw new Error('"{country}" can only be used in regex rules.')
+          }
         }
       }
     },
@@ -46,6 +52,11 @@ const Rule = sequelize.define(
               '"To" has to be either a path (e.g. "/foo/bar") or a URI (e.g. "http://foo.bar/baz").'
             )
           }
+        }
+      },
+      countryToken(value) {
+        if (!this.isRegex && COUNTRY_TOKEN_REGEX.test(value)) {
+          throw new Error('"{country}" can only be used in regex rules.')
         }
       }
     },
