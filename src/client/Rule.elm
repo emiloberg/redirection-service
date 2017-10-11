@@ -114,8 +114,10 @@ type RuleValidationError
 
 getListOfCols : Dict String (Html msg) -> List Column -> List (Html msg)
 getListOfCols listOfAllCols displayColumns =
-    displayColumns
+    (displayColumns
         |> List.map (\col -> Maybe.withDefault (text "") (Dict.get (toString col) listOfAllCols))
+    )
+        ++ [ (Maybe.withDefault (text "") (Dict.get "Edit" listOfAllCols)) ]
 
 
 viewAddRuleRow : List Column -> msg -> (MutationRule -> msg) -> (MutationRule -> msg) -> MutationRule -> Html msg
@@ -154,26 +156,25 @@ viewAddRuleRow displayColumns cancelMessage saveMessage updateMessage rule =
                 , ( toString Who, span [ styles cellStyles ] [] )
                 , ( toString Created, span [ styles cellStyles ] [] )
                 , ( toString Updated, span [ styles cellStyles ] [] )
+                , ( "Edit"
+                  , span [ styles cellStyles ]
+                        [ button [ type_ "button", class "btn btn-success", styles [ marginRight (px 5) ], onClick <| saveMessage rule ] [ text "Save" ]
+                        , button [ type_ "button", class "btn btn-outline-secondary", onClick <| cancelMessage ] [ text "Cancel" ]
+                        ]
+                  )
                 ]
 
         cols =
             getListOfCols cells displayColumns
-
-        actionCols =
-            [ span [ styles cellStyles ]
-                [ button [ type_ "button", class "btn btn-success", styles [ marginRight (px 5) ], onClick <| saveMessage rule ] [ text "Save" ]
-                , button [ type_ "button", class "btn btn-outline-secondary", onClick <| cancelMessage ] [ text "Cancel" ]
-                ]
-            ]
     in
-        Html.form [ styles [ display tableRow ], class "table-active", onSubmit <| saveMessage rule ] (cols ++ actionCols)
+        Html.form [ styles [ display tableRow ], class "table-active", onSubmit <| saveMessage rule ] (cols)
 
 
 viewRuleRow : List Column -> msg -> Rule -> Html msg
 viewRuleRow displayColumns startEdit rule =
     let
         cell extraStyles =
-            td [ styles <| [ minWidth <| px 200 ] ++ extraStyles ]
+            td [ styles <| extraStyles ]
 
         cells =
             Dict.fromList
@@ -185,18 +186,17 @@ viewRuleRow displayColumns startEdit rule =
                 , ( toString Who, cell [] [ text rule.who ] )
                 , ( toString Created, cell [] [ text <| dateToString <| rule.created ] )
                 , ( toString Updated, cell [] [ text <| dateToString <| rule.updated ] )
+                , ( "Edit"
+                  , cell [ minWidth <| px 250 ]
+                        [ button [ type_ "button", class "btn btn-link", onClick <| startEdit ] [ text "Edit" ]
+                        ]
+                  )
                 ]
 
         cols =
             getListOfCols cells displayColumns
-
-        editCol =
-            [ cell [ minWidth <| px 250 ]
-                [ button [ type_ "button", class "btn btn-link", onClick <| startEdit ] [ text "Edit" ]
-                ]
-            ]
     in
-        tr [] (cols ++ editCol)
+        tr [] cols
 
 
 viewRuleEditRow : List Column -> msg -> (Rule -> msg) -> msg -> msg -> Rule -> Html msg
@@ -235,20 +235,19 @@ viewRuleEditRow displayColumns cancelEdit updateRule requestUpdateRule deleteRul
                 , ( toString Who, span [ styles cellStyles ] [ text rule.who ] )
                 , ( toString Created, span [ styles cellStyles ] [ text <| dateToString <| rule.created ] )
                 , ( toString Updated, span [ styles cellStyles ] [ text <| dateToString <| rule.updated ] )
+                , ( "Edit"
+                  , span [ styles cellStyles ]
+                        [ button [ type_ "button", class "btn btn-success", styles [ marginRight (px 5) ], onClick requestUpdateRule ] [ text "Save" ]
+                        , button [ type_ "button", class "btn btn-outline-secondary", styles [ marginRight (px 5) ], onClick cancelEdit ] [ text "Cancel" ]
+                        , button [ type_ "button", class "btn btn-outline-danger", onClick deleteRuleMsg ] [ text "Delete" ]
+                        ]
+                  )
                 ]
 
         cols =
             getListOfCols cells displayColumns
-
-        actionCols =
-            [ span [ styles cellStyles ]
-                [ button [ type_ "button", class "btn btn-success", styles [ marginRight (px 5) ], onClick requestUpdateRule ] [ text "Save" ]
-                , button [ type_ "button", class "btn btn-outline-secondary", styles [ marginRight (px 5) ], onClick cancelEdit ] [ text "Cancel" ]
-                , button [ type_ "button", class "btn btn-outline-danger", onClick deleteRuleMsg ] [ text "Delete" ]
-                ]
-            ]
     in
-        Html.form [ styles [ display tableRow ], class "table-active", onSubmit requestUpdateRule ] (cols ++ actionCols)
+        Html.form [ styles [ display tableRow ], class "table-active", onSubmit requestUpdateRule ] cols
 
 
 rulesDecoder : Decoder (List Rule)

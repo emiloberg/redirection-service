@@ -368,14 +368,14 @@ viewRuleTable model addRuleRows =
                 , ( toString Who, th [ onClick <| SortByColumn Who ] [ text <| "Who" ++ showArrow Who ] )
                 , ( toString Created, th [ onClick <| SortByColumn Created ] [ text <| "Created" ++ showArrow Created ] )
                 , ( toString Updated, th [ onClick <| SortByColumn Updated ] [ text <| "Updated" ++ showArrow Updated ] )
+                , ( "Edit", th [] [ text "Actions" ] )
                 ]
 
         cols =
-            model.displayColumns
-                |> List.map (\col -> Maybe.withDefault (text "") (Dict.get (toString col) cells))
+            getListOfCols cells model.displayColumns
     in
         table [ class "table" ]
-            [ thead [] [ tr [] (cols ++ [ th [] [ text "Actions" ] ]) ]
+            [ thead [] [ tr [] cols ]
             , tbody [] (addRuleRows ++ ruleRows)
             ]
 
