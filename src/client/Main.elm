@@ -35,6 +35,8 @@ import Css
         , textAlign
         , center
         , marginLeft
+        , width
+        , initial
         )
 
 
@@ -418,20 +420,14 @@ view model =
             List.member IsRegex model.displayColumns
 
         actionBar =
-            div []
-                [ label []
-                    [ text "Show all columns:"
-                    , input [ type_ "checkbox", checked shouldShowExtendedCols, styles [ marginLeft <| px 5 ], onClick ToggleShowExtendedCols ] []
+            div
+                [ styles [ displayFlex, justifyContent spaceBetween, alignItems center ] ]
+                [ div [ styles [ displayFlex, alignItems center ] ]
+                    [ input [ class "form-control", styles [ Css.width initial ], value <| withDefault "" model.filterText, placeholder "Filter", autofocus True, onInput UpdateFilter ] []
+                    , label [ class "form-check-label" ] [ text "Show all columns:", input [ class "form-check-input", type_ "checkbox", checked shouldShowExtendedCols, styles [ marginLeft <| px 5 ], onClick ToggleShowExtendedCols ] [] ]
+                    , label [ class "form-check-label" ] [ text "Expert mode:", input [ class "form-check-input", type_ "checkbox", checked showRegex, styles [ marginLeft <| px 5 ], onClick ToggleShowRegex ] [] ]
                     ]
-                , label []
-                    [ text "Expert mode:"
-                    , input [ type_ "checkbox", checked showRegex, styles [ marginLeft <| px 5 ], onClick ToggleShowRegex ] []
-                    ]
-                , div
-                    [ styles [ displayFlex, justifyContent spaceBetween, alignItems center ] ]
-                    [ input [ value <| withDefault "" model.filterText, placeholder "Filter", autofocus True, onInput UpdateFilter ] []
-                    , newButton [ text "＋" ]
-                    ]
+                , newButton [ text "＋" ]
                 ]
     in
         layout

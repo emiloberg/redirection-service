@@ -151,8 +151,8 @@ viewAddRuleRow displayColumns cancelMessage saveMessage updateMessage rule =
 
         cells =
             Dict.fromList
-                [ ( toString From, span [ styles cellStyles ] [ input [ value rule.from, placeholder "From", onInput updateFrom, styles [ Css.width <| pct 100 ] ] [] ] )
-                , ( toString To, span [ styles cellStyles ] [ input [ value rule.to, placeholder "To", onInput updateTo, styles [ Css.width <| pct 100 ] ] [] ] )
+                [ ( toString From, span [ styles cellStyles ] [ input [ class "form-control", value rule.from, placeholder "From", onInput updateFrom, styles [ Css.width <| pct 100 ] ] [] ] )
+                , ( toString To, span [ styles cellStyles ] [ input [ class "form-control", value rule.to, placeholder "To", onInput updateTo, styles [ Css.width <| pct 100 ] ] [] ] )
                 , ( toString IsRegex, span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", checked rule.isRegex, onClick updateIsRegex ] [] ] )
                 , ( toString Kind
                   , span [ styles cellStyles ]
@@ -162,7 +162,7 @@ viewAddRuleRow displayColumns cancelMessage saveMessage updateMessage rule =
                             ]
                         ]
                   )
-                , ( toString Why, span [ styles cellStyles ] [ input [ value rule.why, placeholder "Why", onInput updateWhy, styles [ Css.width <| pct 100 ] ] [] ] )
+                , ( toString Why, span [ styles cellStyles ] [ input [ class "form-control", value rule.why, placeholder "Why", onInput updateWhy, styles [ Css.width <| pct 100 ] ] [] ] )
                 , ( toString Who, span [ styles cellStyles ] [] )
                 , ( toString Created, span [ styles cellStyles ] [] )
                 , ( toString Updated, span [ styles cellStyles ] [] )
@@ -190,7 +190,7 @@ viewRuleRow displayColumns startEdit rule =
             Dict.fromList
                 [ ( toString From, cell [ wordBreakAll ] [ text rule.from ] )
                 , ( toString To, cell [ wordBreakAll ] [ text rule.to ] )
-                , ( toString IsRegex, cell [ textAlign center ] [ input [ type_ "checkbox", disabled True, checked rule.isRegex ] [] ] )
+                , ( toString IsRegex, cell [ textAlign center ] [ input [ class "form-control", type_ "checkbox", disabled True, checked rule.isRegex ] [] ] )
                 , ( toString Kind, cell [] [ text <| kindToString rule.kind ] )
                 , ( toString Why, cell [ wordBreakAll ] [ text rule.why ] )
                 , ( toString Who, cell [] [ text rule.who ] )
@@ -230,8 +230,8 @@ viewRuleEditRow displayColumns cancelEdit updateRule requestUpdateRule deleteRul
 
         cells =
             Dict.fromList
-                [ ( toString From, span [ styles cellStyles ] [ input [ value rule.from, onInput updateFrom, placeholder "From", styles [ Css.width <| pct 100 ] ] [] ] )
-                , ( toString To, span [ styles cellStyles ] [ input [ value rule.to, onInput updateTo, placeholder "To", styles [ Css.width <| pct 100 ] ] [] ] )
+                [ ( toString From, span [ styles cellStyles ] [ input [ class "form-control", value rule.from, onInput updateFrom, placeholder "From", styles [ Css.width <| pct 100 ] ] [] ] )
+                , ( toString To, span [ styles cellStyles ] [ input [ class "form-control", value rule.to, onInput updateTo, placeholder "To", styles [ Css.width <| pct 100 ] ] [] ] )
                 , ( toString IsRegex, span [ styles <| cellStyles ++ [ textAlign center ] ] [ input [ type_ "checkbox", onClick updateIsRegex, checked rule.isRegex ] [] ] )
                 , ( toString Kind
                   , span [ styles cellStyles ]
@@ -241,7 +241,7 @@ viewRuleEditRow displayColumns cancelEdit updateRule requestUpdateRule deleteRul
                             ]
                         ]
                   )
-                , ( toString Why, span [ styles cellStyles ] [ input [ value rule.why, onInput updateWhy, placeholder "Why", styles [ Css.width <| pct 100 ] ] [] ] )
+                , ( toString Why, span [ styles cellStyles ] [ input [ class "form-control", value rule.why, onInput updateWhy, placeholder "Why", styles [ Css.width <| pct 100 ] ] [] ] )
                 , ( toString Who, span [ styles cellStyles ] [ text rule.who ] )
                 , ( toString Created, span [ styles cellStyles ] [ text <| dateToString <| rule.created ] )
                 , ( toString Updated, span [ styles cellStyles ] [ text <| dateToString <| rule.updated ] )
