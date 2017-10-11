@@ -12,7 +12,7 @@ modalId =
 
 viewHelpButton : Html msg
 viewHelpButton =
-    a [ href "", attribute "data-toggle" "modal", attribute "data-target" <| "#" ++ modalId ] [ text "View some examples." ]
+    button [ type_ "button", class "btn btn-primary", attribute "data-toggle" "modal", attribute "data-target" <| "#" ++ modalId ] [ text "View some examples" ]
 
 
 viewHelpModal : Html msg

@@ -15,6 +15,9 @@ const Rule = sequelize.define(
       type: Sequelize.STRING,
       allowNull: false,
       validate: {
+        notEmpty: {
+          msg: '"From" can not be empty.'
+        },
         path(value) {
           if (this.isRegex) {
             return 
@@ -31,6 +34,9 @@ const Rule = sequelize.define(
     to: {
       type: Sequelize.STRING,
       allowNull: false,
+      notEmpty: {
+        msg: '"To" can not be empty.'
+      },
       validate: {
         pathOrUri(value) {
           if (this.isRegex) {

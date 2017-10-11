@@ -29,6 +29,11 @@ router.get("/logo.svg", async ctx => {
   ctx.type = "image/svg+xml"
 })
 
+router.get("/logout", async ctx => {
+  ctx.logout()
+  ctx.redirect("/")
+})
+
 router.get(CONFIG.LOGIN_URL, passport.authenticate("google", { scope: ["profile", "email"] }))
 
 router.get(
@@ -39,6 +44,7 @@ router.get(
   }),
   async ctx => ctx.redirect("/")
 )
+
 
 router.get("/", async ctx => {
   ctx.body = indexHtml

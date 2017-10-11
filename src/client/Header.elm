@@ -1,8 +1,8 @@
 module Header exposing (header)
 
-import Html exposing (Html, div, text, img, a, span)
-import Html.Attributes exposing (class, style, src, height)
-import Css exposing (asPairs, backgroundColor, hex, padding, px, paddingRight, color, margin, fontSize)
+import Html exposing (Html, div, text, img, a, span, ul, li)
+import Html.Attributes exposing (class, style, src, height, href)
+import Css exposing (asPairs, backgroundColor, hex, padding, px, paddingRight, color, margin, fontSize, displayFlex, alignItems, center, marginRight)
 import Css.Colors exposing (white)
 import Util exposing (styles)
 
@@ -27,9 +27,21 @@ title =
     span [ styles [ color white, margin (px 0), fontSize (px 25) ] ]
 
 
+actions : Html msg
+actions =
+    ul [ class "navbar-nav", styles [ marginRight <| px 25 ] ]
+        [ li [ class "nav-item" ]
+            [ a [ class "nav-link", href "/logout" ] [ text "Logout" ]
+            ]
+        ]
+
+
 header : Html msg
 header =
     navBar
         [ title [ text "Redirection Service" ]
-        , logo
+        , div [ styles [ displayFlex, alignItems center ] ]
+            [ actions
+            , logo
+            ]
         ]

@@ -112,6 +112,16 @@ type RuleValidationError
     | WhyIsTooShort
 
 
+kindToString : Kind -> String
+kindToString variety =
+    case variety of
+        Permanent ->
+            "Permanent (301)"
+
+        Temporary ->
+            "Temporary (302)"
+
+
 getListOfCols : Dict String (Html msg) -> List Column -> List (Html msg)
 getListOfCols listOfAllCols displayColumns =
     (displayColumns
@@ -147,8 +157,8 @@ viewAddRuleRow displayColumns cancelMessage saveMessage updateMessage rule =
                 , ( toString Kind
                   , span [ styles cellStyles ]
                         [ select [ class "form-control", onInput updateKind ]
-                            [ option [ value << toString <| Permanent, (selected (rule.kind == Permanent)) ] [ text << toString <| Permanent ]
-                            , option [ value << toString <| Temporary, (selected (rule.kind == Temporary)) ] [ text << toString <| Temporary ]
+                            [ option [ value << toString <| Permanent, (selected (rule.kind == Permanent)) ] [ text <| kindToString Permanent ]
+                            , option [ value << toString <| Temporary, (selected (rule.kind == Temporary)) ] [ text <| kindToString Temporary ]
                             ]
                         ]
                   )
@@ -181,7 +191,7 @@ viewRuleRow displayColumns startEdit rule =
                 [ ( toString From, cell [ wordBreakAll ] [ text rule.from ] )
                 , ( toString To, cell [ wordBreakAll ] [ text rule.to ] )
                 , ( toString IsRegex, cell [ textAlign center ] [ input [ type_ "checkbox", disabled True, checked rule.isRegex ] [] ] )
-                , ( toString Kind, cell [] [ text <| toString <| rule.kind ] )
+                , ( toString Kind, cell [] [ text <| kindToString rule.kind ] )
                 , ( toString Why, cell [ wordBreakAll ] [ text rule.why ] )
                 , ( toString Who, cell [] [ text rule.who ] )
                 , ( toString Created, cell [] [ text <| dateToString <| rule.created ] )
@@ -226,8 +236,8 @@ viewRuleEditRow displayColumns cancelEdit updateRule requestUpdateRule deleteRul
                 , ( toString Kind
                   , span [ styles cellStyles ]
                         [ select [ class "form-control", onInput updateKind ]
-                            [ option [ value << toString <| Permanent ] [ text << toString <| Permanent ]
-                            , option [ value << toString <| Temporary ] [ text << toString <| Temporary ]
+                            [ option [ value << toString <| Permanent ] [ text <| kindToString Permanent ]
+                            , option [ value << toString <| Temporary ] [ text <| kindToString Temporary ]
                             ]
                         ]
                   )
