@@ -115,7 +115,7 @@ type RuleValidationError
 getListOfCols : Dict String (Html msg) -> List Column -> List (Html msg)
 getListOfCols listOfAllCols displayColumns =
     (displayColumns
-        |> List.map (\col -> Maybe.withDefault (text "") (Dict.get (toString col) listOfAllCols))
+        |> List.filterMap (\col -> Dict.get (toString col) listOfAllCols)
     )
         ++ [ (Maybe.withDefault (text "") (Dict.get "Edit" listOfAllCols)) ]
 
