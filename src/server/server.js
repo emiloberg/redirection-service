@@ -18,7 +18,7 @@ app
     if (
       ctx.isAuthenticated() ||
       ctx.url.startsWith(CONFIG.LOGIN_URL) ||
-      ctx.request.method === "GET" && ctx.url === "/rules"
+      (ctx.request.method === "GET" && ctx.url === "/rules")
     ) {
       await next()
     } else {
@@ -30,6 +30,8 @@ app
   .use(router.routes())
   .use(router.allowedMethods())
 
-http.createServer(app.callback()).listen(CONFIG.APP_PORT, "0.0.0.0", 511, () => {
-  console.log(`Listening on port ${CONFIG.APP_PORT}.`)
-})
+http
+  .createServer(app.callback())
+  .listen(CONFIG.APP_PORT, "0.0.0.0", 511, () => {
+    console.log(`Listening on port ${CONFIG.APP_PORT}.`)
+  })

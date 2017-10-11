@@ -7,8 +7,12 @@ const CONFIG = require("./config")
 
 const router = new Router()
 
-const indexHtml = fs.readFileSync(path.join(__dirname, "../client/index.html")).toString()
-const elmJs = fs.readFileSync(path.join(__dirname, "../../dist/client.js")).toString()
+const indexHtml = fs
+  .readFileSync(path.join(__dirname, "../client/index.html"))
+  .toString()
+const elmJs = fs
+  .readFileSync(path.join(__dirname, "../../dist/client.js"))
+  .toString()
 const logoSvg = fs.readFileSync(path.join(__dirname, "./logo.svg")).toString()
 
 const handleValidationError = (ctx, error) => {
@@ -34,7 +38,10 @@ router.get("/logout", async ctx => {
   ctx.redirect("/")
 })
 
-router.get(CONFIG.LOGIN_URL, passport.authenticate("google", { scope: ["profile", "email"] }))
+router.get(
+  CONFIG.LOGIN_URL,
+  passport.authenticate("google", { scope: ["profile", "email"] })
+)
 
 router.get(
   CONFIG.LOGIN_CALLBACK_URL,
@@ -45,14 +52,17 @@ router.get(
   async ctx => ctx.redirect("/")
 )
 
-
 router.get("/", async ctx => {
   ctx.body = indexHtml
 })
 
 router.put("/rules/:id", async ctx => {
   try {
-    ctx.body = await db.updateRule(ctx.params.id, ctx.request.body, ctx.state.user.emails[0].value)
+    ctx.body = await db.updateRule(
+      ctx.params.id,
+      ctx.request.body,
+      ctx.state.user.emails[0].value
+    )
   } catch (e) {
     handleValidationError(ctx, e)
   }
@@ -64,7 +74,10 @@ router.get("/rules", async ctx => {
 
 router.post("/rules", async ctx => {
   try {
-    ctx.body = await db.createRule(ctx.request.body, ctx.state.user.emails[0].value)
+    ctx.body = await db.createRule(
+      ctx.request.body,
+      ctx.state.user.emails[0].value
+    )
   } catch (e) {
     handleValidationError(ctx, e)
   }

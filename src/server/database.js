@@ -20,13 +20,11 @@ const Rule = sequelize.define(
         },
         path(value) {
           if (this.isRegex) {
-            return 
+            return
           }
 
           if (!PATH_REGEX.test(value)) {
-            throw new Error(
-              '"From" has to be a path (e.g. "/foo/bar").'
-            )
+            throw new Error('"From" has to be a path (e.g. "/foo/bar").')
           }
         }
       }
@@ -40,7 +38,7 @@ const Rule = sequelize.define(
       validate: {
         pathOrUri(value) {
           if (this.isRegex) {
-            return 
+            return
           }
 
           if (!PATH_REGEX.test(value) && !URI_REGEX.test(value)) {
@@ -75,7 +73,12 @@ const Rule = sequelize.define(
       }
     },
     who: { type: Sequelize.STRING, allowNull: false },
-    isRegex: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: false, field: "is_regex" }
+    isRegex: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "is_regex"
+    }
   },
   {
     createdAt: "created",
@@ -129,4 +132,3 @@ module.exports = {
   updateRule,
   deleteRule
 }
-

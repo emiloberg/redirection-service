@@ -26,7 +26,8 @@
     "db:drop": "dropdb --if-exists redirection_service",
     "db:recreate":
       "yarn db:drop && yarn db:create && yarn db:create-schema && yarn db:seed && yarn db:seed-old-site",
-    "heroku-postbuild": "yarn build"
+    "heroku-postbuild": "yarn build",
+    "format": "prettier --write 'src/**/*.js'"
   },
   "prettier": {
     "semi": false
