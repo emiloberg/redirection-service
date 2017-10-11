@@ -427,7 +427,7 @@ view model =
                     , label [ class "form-check-label" ] [ text "Show all columns:", input [ class "form-check-input", type_ "checkbox", checked shouldShowExtendedCols, styles [ marginLeft <| px 5 ], onClick ToggleShowExtendedCols ] [] ]
                     , label [ class "form-check-label" ] [ text "Expert mode:", input [ class "form-check-input", type_ "checkbox", checked showRegex, styles [ marginLeft <| px 5 ], onClick ToggleShowRegex ] [] ]
                     ]
-                , newButton [ text "＋" ]
+                , newButton [ text "New rule" ]
                 ]
     in
         layout
