@@ -24,7 +24,7 @@ const Rule = sequelize.define(
             return
           }
 
-          if (!PATH_REGEX.test(value)) {
+          if (!(value === "/" || PATH_REGEX.test(value))) {
             throw new Error('"From" has to be a path (e.g. "/foo/bar").')
           }
         },
@@ -47,7 +47,9 @@ const Rule = sequelize.define(
             return
           }
 
-          if (!PATH_REGEX.test(value) && !URI_REGEX.test(value)) {
+          if (
+            !(value === "/" || PATH_REGEX.test(value) || URI_REGEX.test(value))
+          ) {
             throw new Error(
               '"To" has to be either a path (e.g. "/foo/bar") or a URI (e.g. "http://foo.bar/baz").'
             )
