@@ -19,7 +19,7 @@ const trimIfExists = str => {
 const Rule = sequelize.define(
   "rule",
   {
-    id: { type: Sequelize.INTEGER, primaryKey: true },
+    id: { type: Sequelize.INTEGER, primaryKey: true, unique: true },
     from: {
       type: Sequelize.STRING,
       allowNull: false,
