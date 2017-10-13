@@ -2,7 +2,7 @@ begin;
 
 create table rules (
   id serial primary key,
-  "from" text not null,
+  "from" text not null unique,
   "to" text not null,
   kind text not null,
   why text not null,
