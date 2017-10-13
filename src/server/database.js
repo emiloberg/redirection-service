@@ -7,6 +7,14 @@ const URI_REGEX = /^(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z
 const PATH_REGEX = /^(\/[^\s\/]+)+$/i
 const COUNTRY_TOKEN_REGEX = /\{country\}/gi
 
+const trimIfExists = str => {
+  if (str && typeof str === "string") {
+    return str.trim()
+  }
+
+  return str
+}
+
 // NOTE: Remember to keep the validations below in sync with the client side validatinos in Rule.elm.
 const Rule = sequelize.define(
   "rule",
@@ -95,7 +103,14 @@ const Rule = sequelize.define(
   },
   {
     createdAt: "created",
-    updatedAt: "updated"
+    updatedAt: "updated",
+    hooks: {
+      beforeValidate: rule => {
+        rule.from = trimIfExists(rule.from)
+        rule.to = trimIfExists(rule.to)
+        rule.why = trimIfExists(rule.why)
+      }
+    }
   }
 )
 
