@@ -13,6 +13,16 @@
 	<div></div>
 	<script src="client.js"></script>
 	<script>
-		Elm.Main.embed(document.querySelector("div"));
+		var app = Elm.Main.embed(document.querySelector("div"));
+
+    app.ports.askToConfirm.subscribe(function (message) {
+      const response = window.confirm(message)
+      // If we simply send the response straight away the model won't have time to update with the
+      // appropriate `operationToConfirm`, so we schedule the response for when all other javascript
+      // in the execution queue has finished.
+      setTimeout(function () {
+        app.ports.confirmationResponses.send(response)
+      }, 0)
+    })
 	</script>
 </body>

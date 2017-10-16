@@ -18,6 +18,7 @@ import Dict exposing (..)
 import String exposing (contains)
 import List exposing (drop)
 import Modal exposing (viewHelpModal, viewHelpButton)
+import Confirm exposing (..)
 import Css
     exposing
         ( px
@@ -46,7 +47,7 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = always Sub.none
+        , subscriptions = subscriptions
         }
 
 
@@ -66,6 +67,7 @@ type alias Model =
     , flash : List Flash
     , filterText : Maybe String
     , displayColumns : List Column
+    , operationToConfirm : Maybe Msg
     }
 
 
@@ -83,10 +85,12 @@ type Msg
     | ResultAddRule (Result Http.Error Rule)
     | RequestDeleteRule RuleId
     | ResultDeleteRule (Result Http.Error RuleId)
+    | DeleteWithConfirm RuleId
     | HideFlash
     | UpdateFilter String
     | ToggleShowExtendedCols
     | ToggleShowRegex
+    | DoNothing
 
 
 type Direction
@@ -191,6 +195,17 @@ handleError model error =
             setFlash model <| Error <| "Operation successful, but the response is malformed: " ++ response.body ++ "."
 
 
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    confirmationResponses
+        (\isConfirmed ->
+            if isConfirmed then
+                Maybe.withDefault DoNothing model.operationToConfirm
+            else
+                DoNothing
+        )
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
@@ -206,6 +221,9 @@ update msg model =
             model.rules |> List.filter (.ruleId >> (/=) ruleId)
     in
         case msg of
+            DoNothing ->
+                ( model, Cmd.none )
+
             SortByColumn column ->
                 if column == model.sortColumn then
                     ( { model | sortDirection = reverseDirection }, Cmd.none )
@@ -266,8 +284,11 @@ update msg model =
                             }
                             (Success <| "Updated rule for \"" ++ rule.from ++ "\"")
 
+            DeleteWithConfirm ruleId ->
+                ( { model | operationToConfirm = Just <| RequestDeleteRule ruleId }, askToConfirm "Are you sure?" )
+
             RequestDeleteRule ruleId ->
-                ( model, Http.send ResultDeleteRule <| deleteRule ruleId )
+                ( { model | operationToConfirm = Nothing }, Http.send ResultDeleteRule <| deleteRule ruleId )
 
             ResultDeleteRule result ->
                 case result of
@@ -343,7 +364,7 @@ viewRuleTable model addRuleRows =
 
         ruleToRow rule =
             if shouldBeEditable rule then
-                viewRuleEditRow model.displayColumns (EditRule emptyRule) UpdateEditRule RequestUpdateRule (RequestDeleteRule rule.ruleId) model.ruleToEdit
+                viewRuleEditRow model.displayColumns (EditRule emptyRule) UpdateEditRule RequestUpdateRule (DeleteWithConfirm rule.ruleId) model.ruleToEdit
             else
                 viewRuleRow model.displayColumns (EditRule rule) rule
 
@@ -459,6 +480,7 @@ init =
       , flash = []
       , filterText = Nothing
       , displayColumns = [ From, To, Kind, Why ]
+      , operationToConfirm = Nothing
       }
     , Cmd.batch
         [ Http.send FetchedRules getRules
