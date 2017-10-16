@@ -11,7 +11,9 @@ const sequalizeOptions = {
   password: databaseUrl.auth ? databaseUrl.auth.split(":")[1] : null,
   logging: process.env.NODE_ENV === "production" ? null : console.log
 }
-const sequelize = new Sequelize("redirection_service", null, null, sequalizeOptions)
+
+const databaseName = databaseUrl.pathname.replace("/", "")
+const sequelize = new Sequelize(databaseName, null, null, sequalizeOptions)
 
 const URI_REGEX = /^(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/i
 const PATH_REGEX = /^(\/[^\s\/]+)+$/i
