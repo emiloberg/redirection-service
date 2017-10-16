@@ -3,17 +3,17 @@ const CONFIG = require("./config")
 const urlModule = require("url")
 
 const databaseUrl = urlModule.parse(CONFIG.DATABASE_URL)
+const databaseUsername = databaseUrl.auth ? databaseUrl.auth.split(":")[0] : null
+const databasePassword = databaseUrl.auth ? databaseUrl.auth.split(":")[1] : null
+const databaseName = databaseUrl.pathname.replace("/", "")
 const sequalizeOptions = {
   dialect: "postgres",
   host: databaseUrl.hostname,
   port: parseInt(databaseUrl.port, 10),
-  username: databaseUrl.auth ? databaseUrl.auth.split(":")[0] : null,
-  password: databaseUrl.auth ? databaseUrl.auth.split(":")[1] : null,
   logging: process.env.NODE_ENV === "production" ? null : console.log
 }
 
-const databaseName = databaseUrl.pathname.replace("/", "")
-const sequelize = new Sequelize(databaseName, null, null, sequalizeOptions)
+const sequelize = new Sequelize(databaseName, databaseUsername, databasePassword, sequalizeOptions)
 
 const URI_REGEX = /^(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/i
 const PATH_REGEX = /^(\/[^\s\/]+)+$/i
