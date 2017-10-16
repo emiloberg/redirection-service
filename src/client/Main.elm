@@ -363,10 +363,14 @@ viewRuleTable model addRuleRows =
                 rule
 
         ruleToRow rule =
-            if shouldBeEditable rule then
-                viewRuleEditRow model.displayColumns (EditRule emptyRule) UpdateEditRule RequestUpdateRule (ConfirmAction "Are you sure?" <| RequestDeleteRule rule.ruleId) model.ruleToEdit
-            else
-                viewRuleRow model.displayColumns (EditRule rule) rule
+            let
+                deleteAction =
+                    ConfirmAction ("Are you sure you want to delete the rule for \"" ++ rule.from ++ "\"?") <| RequestDeleteRule rule.ruleId
+            in
+                if shouldBeEditable rule then
+                    viewRuleEditRow model.displayColumns (EditRule emptyRule) UpdateEditRule RequestUpdateRule deleteAction model.ruleToEdit
+                else
+                    viewRuleRow model.displayColumns (EditRule rule) rule
 
         filteredRules =
             case model.filterText of
@@ -444,7 +448,7 @@ view model =
             if showRegex then
                 ToggleShowRegex
             else
-                ConfirmAction "I sure hope you know what you're doing." ToggleShowRegex
+                ConfirmAction "Enabling expert mode. I sure hope you know what you're doing." ToggleShowRegex
 
         actionBar =
             div
