@@ -12,7 +12,7 @@ import Task
 import Process
 import Header exposing (header)
 import Column exposing (..)
-import Util exposing (styles, anyListMember, removeFromList)
+import Util exposing (styles, anyListMember, removeFromList, onClickPreventDefault)
 import Maybe exposing (withDefault)
 import Dict exposing (..)
 import String exposing (contains)
@@ -90,7 +90,8 @@ type Msg
     | UpdateFilter String
     | ToggleShowExtendedCols
     | ToggleShowRegex
-    | DoNothing
+    | EnableExpertWithConfirm
+    | CancelOperation
 
 
 type Direction
@@ -200,9 +201,9 @@ subscriptions model =
     confirmationResponses
         (\isConfirmed ->
             if isConfirmed then
-                Maybe.withDefault DoNothing model.operationToConfirm
+                Maybe.withDefault CancelOperation model.operationToConfirm
             else
-                DoNothing
+                CancelOperation
         )
 
 
@@ -221,8 +222,8 @@ update msg model =
             model.rules |> List.filter (.ruleId >> (/=) ruleId)
     in
         case msg of
-            DoNothing ->
-                ( model, Cmd.none )
+            CancelOperation ->
+                ( { model | operationToConfirm = Nothing }, Cmd.none )
 
             SortByColumn column ->
                 if column == model.sortColumn then
@@ -306,6 +307,9 @@ update msg model =
 
             UpdateFilter text ->
                 ( { model | filterText = Just text }, Cmd.none )
+
+            EnableExpertWithConfirm ->
+                ( { model | operationToConfirm = Just ToggleShowRegex }, askToConfirm "I sure hope you know what you're doing." )
 
             ToggleShowRegex ->
                 let
@@ -440,13 +444,19 @@ view model =
         showRegex =
             List.member IsRegex model.displayColumns
 
+        toggleCommand =
+            if showRegex then
+                ToggleShowRegex
+            else
+                EnableExpertWithConfirm
+
         actionBar =
             div
                 [ styles [ displayFlex, justifyContent spaceBetween, alignItems center ] ]
                 [ div [ styles [ displayFlex, alignItems center ] ]
                     [ input [ class "form-control", styles [ Css.width initial ], value <| withDefault "" model.filterText, placeholder "Filter", autofocus True, onInput UpdateFilter ] []
                     , label [ class "form-check-label" ] [ text "Show all columns:", input [ class "form-check-input", type_ "checkbox", checked shouldShowExtendedCols, styles [ marginLeft <| px 5 ], onClick ToggleShowExtendedCols ] [] ]
-                    , label [ class "form-check-label" ] [ text "Expert mode:", input [ class "form-check-input", type_ "checkbox", checked showRegex, styles [ marginLeft <| px 5 ], onClick ToggleShowRegex ] [] ]
+                    , label [ class "form-check-label" ] [ text "Expert mode:", input [ class "form-check-input", type_ "checkbox", checked showRegex, styles [ marginLeft <| px 5 ], onClickPreventDefault toggleCommand ] [] ]
                     ]
                 , newButton [ text "New rule" ]
                 ]
