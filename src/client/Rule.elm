@@ -236,8 +236,8 @@ viewRuleEditRow displayColumns cancelEdit updateRule requestUpdateRule deleteRul
                 , ( toString Kind
                   , span [ styles cellStyles ]
                         [ select [ class "form-control", onInput updateKind ]
-                            [ option [ value << toString <| Permanent ] [ text <| kindToString Permanent ]
-                            , option [ value << toString <| Temporary ] [ text <| kindToString Temporary ]
+                            [ option [ value << toString <| Permanent, (selected (rule.kind == Permanent)) ] [ text <| kindToString Permanent ]
+                            , option [ value << toString <| Temporary, (selected (rule.kind == Temporary)) ] [ text <| kindToString Temporary ]
                             ]
                         ]
                   )
