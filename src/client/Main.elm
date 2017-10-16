@@ -12,12 +12,13 @@ import Task
 import Process
 import Header exposing (header)
 import Column exposing (..)
-import Util exposing (styles, anyListMember, removeFromList)
+import Util exposing (styles, anyListMember, removeFromList, onClickPreventDefault)
 import Maybe exposing (withDefault)
 import Dict exposing (..)
 import String exposing (contains)
 import List exposing (drop)
 import Modal exposing (viewHelpModal, viewHelpButton)
+import Confirm exposing (..)
 import Css
     exposing
         ( px
@@ -46,7 +47,7 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = always Sub.none
+        , subscriptions = subscriptions
         }
 
 
@@ -66,6 +67,7 @@ type alias Model =
     , flash : List Flash
     , filterText : Maybe String
     , displayColumns : List Column
+    , operationToConfirm : Maybe Msg
     }
 
 
@@ -87,6 +89,8 @@ type Msg
     | UpdateFilter String
     | ToggleShowExtendedCols
     | ToggleShowRegex
+    | CancelOperation
+    | ConfirmAction String Msg
 
 
 type Direction
@@ -191,6 +195,17 @@ handleError model error =
             setFlash model <| Error <| "Operation successful, but the response is malformed: " ++ response.body ++ "."
 
 
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    confirmationResponses
+        (\isConfirmed ->
+            if isConfirmed then
+                Maybe.withDefault CancelOperation model.operationToConfirm
+            else
+                CancelOperation
+        )
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
@@ -206,6 +221,12 @@ update msg model =
             model.rules |> List.filter (.ruleId >> (/=) ruleId)
     in
         case msg of
+            CancelOperation ->
+                ( { model | operationToConfirm = Nothing }, Cmd.none )
+
+            ConfirmAction question msg ->
+                ( { model | operationToConfirm = Just msg }, askToConfirm question )
+
             SortByColumn column ->
                 if column == model.sortColumn then
                     ( { model | sortDirection = reverseDirection }, Cmd.none )
@@ -267,7 +288,7 @@ update msg model =
                             (Success <| "Updated rule for \"" ++ rule.from ++ "\"")
 
             RequestDeleteRule ruleId ->
-                ( model, Http.send ResultDeleteRule <| deleteRule ruleId )
+                ( { model | operationToConfirm = Nothing }, Http.send ResultDeleteRule <| deleteRule ruleId )
 
             ResultDeleteRule result ->
                 case result of
@@ -342,10 +363,14 @@ viewRuleTable model addRuleRows =
                 rule
 
         ruleToRow rule =
-            if shouldBeEditable rule then
-                viewRuleEditRow model.displayColumns (EditRule emptyRule) UpdateEditRule RequestUpdateRule (RequestDeleteRule rule.ruleId) model.ruleToEdit
-            else
-                viewRuleRow model.displayColumns (EditRule rule) rule
+            let
+                deleteAction =
+                    ConfirmAction ("Are you sure you want to delete the rule for \"" ++ rule.from ++ "\"?") <| RequestDeleteRule rule.ruleId
+            in
+                if shouldBeEditable rule then
+                    viewRuleEditRow model.displayColumns (EditRule emptyRule) UpdateEditRule RequestUpdateRule deleteAction model.ruleToEdit
+                else
+                    viewRuleRow model.displayColumns (EditRule rule) rule
 
         filteredRules =
             case model.filterText of
@@ -419,13 +444,19 @@ view model =
         showRegex =
             List.member IsRegex model.displayColumns
 
+        toggleCommand =
+            if showRegex then
+                ToggleShowRegex
+            else
+                ConfirmAction "Enabling expert mode. I sure hope you know what you're doing." ToggleShowRegex
+
         actionBar =
             div
                 [ styles [ displayFlex, justifyContent spaceBetween, alignItems center ] ]
                 [ div [ styles [ displayFlex, alignItems center ] ]
                     [ input [ class "form-control", styles [ Css.width initial ], value <| withDefault "" model.filterText, placeholder "Filter", autofocus True, onInput UpdateFilter ] []
                     , label [ class "form-check-label" ] [ text "Show all columns:", input [ class "form-check-input", type_ "checkbox", checked shouldShowExtendedCols, styles [ marginLeft <| px 5 ], onClick ToggleShowExtendedCols ] [] ]
-                    , label [ class "form-check-label" ] [ text "Expert mode:", input [ class "form-check-input", type_ "checkbox", checked showRegex, styles [ marginLeft <| px 5 ], onClick ToggleShowRegex ] [] ]
+                    , label [ class "form-check-label" ] [ text "Expert mode:", input [ class "form-check-input", type_ "checkbox", checked showRegex, styles [ marginLeft <| px 5 ], onClickPreventDefault toggleCommand ] [] ]
                     ]
                 , newButton [ text "New rule" ]
                 ]
@@ -459,6 +490,7 @@ init =
       , flash = []
       , filterText = Nothing
       , displayColumns = [ From, To, Kind, Why ]
+      , operationToConfirm = Nothing
       }
     , Cmd.batch
         [ Http.send FetchedRules getRules

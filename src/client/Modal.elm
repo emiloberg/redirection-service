@@ -3,9 +3,6 @@ module Modal exposing (..)
 import Html exposing (Html, button, div, text, h1)
 import Html.Attributes exposing (type_, class, attribute, id)
 import Markdown exposing (..)
-import Css exposing (pct, descendants, hex, backgroundColor)
-import Css.Elements exposing (table)
-import Util exposing (styles)
 
 
 modalId : String
