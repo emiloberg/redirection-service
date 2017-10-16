@@ -85,13 +85,12 @@ type Msg
     | ResultAddRule (Result Http.Error Rule)
     | RequestDeleteRule RuleId
     | ResultDeleteRule (Result Http.Error RuleId)
-    | DeleteWithConfirm RuleId
     | HideFlash
     | UpdateFilter String
     | ToggleShowExtendedCols
     | ToggleShowRegex
-    | EnableExpertWithConfirm
     | CancelOperation
+    | ConfirmAction String Msg
 
 
 type Direction
@@ -225,6 +224,9 @@ update msg model =
             CancelOperation ->
                 ( { model | operationToConfirm = Nothing }, Cmd.none )
 
+            ConfirmAction question msg ->
+                ( { model | operationToConfirm = Just msg }, askToConfirm question )
+
             SortByColumn column ->
                 if column == model.sortColumn then
                     ( { model | sortDirection = reverseDirection }, Cmd.none )
@@ -285,9 +287,6 @@ update msg model =
                             }
                             (Success <| "Updated rule for \"" ++ rule.from ++ "\"")
 
-            DeleteWithConfirm ruleId ->
-                ( { model | operationToConfirm = Just <| RequestDeleteRule ruleId }, askToConfirm "Are you sure?" )
-
             RequestDeleteRule ruleId ->
                 ( { model | operationToConfirm = Nothing }, Http.send ResultDeleteRule <| deleteRule ruleId )
 
@@ -307,9 +306,6 @@ update msg model =
 
             UpdateFilter text ->
                 ( { model | filterText = Just text }, Cmd.none )
-
-            EnableExpertWithConfirm ->
-                ( { model | operationToConfirm = Just ToggleShowRegex }, askToConfirm "I sure hope you know what you're doing." )
 
             ToggleShowRegex ->
                 let
@@ -368,7 +364,7 @@ viewRuleTable model addRuleRows =
 
         ruleToRow rule =
             if shouldBeEditable rule then
-                viewRuleEditRow model.displayColumns (EditRule emptyRule) UpdateEditRule RequestUpdateRule (DeleteWithConfirm rule.ruleId) model.ruleToEdit
+                viewRuleEditRow model.displayColumns (EditRule emptyRule) UpdateEditRule RequestUpdateRule (ConfirmAction "Are you sure?" <| RequestDeleteRule rule.ruleId) model.ruleToEdit
             else
                 viewRuleRow model.displayColumns (EditRule rule) rule
 
@@ -448,7 +444,7 @@ view model =
             if showRegex then
                 ToggleShowRegex
             else
-                EnableExpertWithConfirm
+                ConfirmAction "I sure hope you know what you're doing." ToggleShowRegex
 
         actionBar =
             div
