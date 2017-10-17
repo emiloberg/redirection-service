@@ -4,3 +4,4 @@ elm-stuff/
 /index.html
 dist/
 yarn-error.log
+src/server/config/local.js
