@@ -2,6 +2,8 @@ const Sequelize = require("sequelize")
 const CONFIG = require("./config")
 const urlModule = require("url")
 
+// To keep DRY and maintain compatibility with heroku we parse the database
+// initialization data from the DATABASE_URL variable.
 const databaseUrl = urlModule.parse(CONFIG.DATABASE_URL)
 const databaseUsername = databaseUrl.auth
   ? databaseUrl.auth.split(":")[0]
@@ -36,6 +38,11 @@ const trimIfExists = str => {
   return str
 }
 
+/**
+ * Here we define the structure of the model.
+ *
+ * NOTE: This has to be manually synced with the schema.
+ */
 const Rule = sequelize.define(
   "rule",
   {
