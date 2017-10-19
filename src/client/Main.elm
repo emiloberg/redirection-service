@@ -4,6 +4,7 @@ import Http exposing (Error(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import Html.Keyed exposing (node)
 import Date exposing (Date)
 import Rule exposing (..)
 import Flash exposing (..)
@@ -19,6 +20,7 @@ import String exposing (contains)
 import List exposing (drop)
 import Modal exposing (viewHelpModal, viewHelpButton)
 import Confirm exposing (..)
+import Tuple exposing (mapSecond)
 import Css
     exposing
         ( px
@@ -336,7 +338,7 @@ update msg model =
                     ( { model | displayColumns = columns }, Cmd.none )
 
 
-viewRuleTable : Model -> List (Html Msg) -> Html Msg
+viewRuleTable : Model -> List ( String, Html Msg ) -> Html Msg
 viewRuleTable model addRuleRows =
     let
         arrow =
@@ -383,7 +385,8 @@ viewRuleTable model addRuleRows =
         ruleRows =
             filteredRules
                 |> sortByColumn model.sortColumn model.sortDirection
-                |> List.map ruleToRow
+                |> List.map (\rule -> ( toString rule.ruleId, rule ))
+                |> List.map (mapSecond ruleToRow)
 
         cells =
             Dict.fromList
@@ -403,7 +406,7 @@ viewRuleTable model addRuleRows =
     in
         table [ class "table" ]
             [ thead [] [ tr [] cols ]
-            , tbody [] (addRuleRows ++ ruleRows)
+            , Html.Keyed.node "tbody" [] (addRuleRows ++ ruleRows)
             ]
 
 
@@ -412,7 +415,7 @@ view model =
     let
         addRuleRows =
             if model.showAddRule then
-                [ viewAddRuleRow model.displayColumns CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ]
+                [ ( "addRuleRow", viewAddRuleRow model.displayColumns CancelAddRule RequestAddRule UpdateAddRule model.ruleToAdd ) ]
             else
                 []
 
