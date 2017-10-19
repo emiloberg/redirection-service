@@ -38,11 +38,9 @@ const trimIfExists = str => {
   return str
 }
 
-/**
- * Here we define the structure of the model.
- *
- * NOTE: This has to be manually synced with the schema.
- */
+// Here we define the structure of the model.
+//
+// NOTE: This has to be manually synced with the schema.
 const Rule = sequelize.define(
   "rule",
   {
