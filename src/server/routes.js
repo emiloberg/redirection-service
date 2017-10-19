@@ -66,11 +66,18 @@ router.get("/logo.svg", async ctx => {
 // rule routes
 router.put("/rules/:id", async ctx => {
   try {
-    ctx.body = await db.updateRule(
+    const updatedRule = await db.updateRule(
       ctx.params.id,
       ctx.request.body,
       ctx.state.user.emails[0].value
     )
+
+    if (updatedRule) {
+      ctx.body = updatedRule
+    } else {
+      ctx.status = 400
+      ctx.body = "No such rule exist to be updated."
+    }
   } catch (e) {
     handleValidationError(ctx, e)
   }

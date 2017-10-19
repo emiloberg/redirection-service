@@ -169,7 +169,11 @@ async function updateRule(ruleId, rule, user) {
     }
   )
 
-  return res[1][0] //todo safeguard against this not existing
+  try {
+    return res[1][0]
+  } catch (err) {
+    return undefined
+  }
 }
 
 async function deleteRule(ruleId) {
