@@ -10,7 +10,7 @@
   },
   "scripts": {
     "postinstall": "elm package install -y",
-    "prestart": "rimraf dist",
+    "prestart": "rimraf dist && yarn build",
     "start": "npm-run-all --parallel build:dev:watch serve:dev:watch",
     "build": "elm make src/client/Main.elm --output=dist/client.js --yes --warn",
     "build:dev:watch": "chokidar --initial src/client/**/*.elm -c 'yarn build:dev:client'",
