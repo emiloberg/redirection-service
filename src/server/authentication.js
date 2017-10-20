@@ -2,6 +2,7 @@ const passport = require("koa-passport")
 const GoogleStrategy = require("passport-google-oauth20").Strategy
 const CONFIG = require("./config")
 
+// We authenticate using OAuth2 via Google.
 passport.use(
   new GoogleStrategy(
     {

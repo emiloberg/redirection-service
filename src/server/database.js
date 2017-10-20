@@ -2,9 +2,15 @@ const Sequelize = require("sequelize")
 const CONFIG = require("./config")
 const urlModule = require("url")
 
+// To keep DRY and maintain compatibility with heroku we parse the database
+// initialization data from the DATABASE_URL variable.
 const databaseUrl = urlModule.parse(CONFIG.DATABASE_URL)
-const databaseUsername = databaseUrl.auth ? databaseUrl.auth.split(":")[0] : null
-const databasePassword = databaseUrl.auth ? databaseUrl.auth.split(":")[1] : null
+const databaseUsername = databaseUrl.auth
+  ? databaseUrl.auth.split(":")[0]
+  : null
+const databasePassword = databaseUrl.auth
+  ? databaseUrl.auth.split(":")[1]
+  : null
 const databaseName = databaseUrl.pathname.replace("/", "")
 const sequalizeOptions = {
   dialect: "postgres",
@@ -13,7 +19,12 @@ const sequalizeOptions = {
   logging: process.env.NODE_ENV === "production" ? null : console.log
 }
 
-const sequelize = new Sequelize(databaseName, databaseUsername, databasePassword, sequalizeOptions)
+const sequelize = new Sequelize(
+  databaseName,
+  databaseUsername,
+  databasePassword,
+  sequalizeOptions
+)
 
 const URI_REGEX = /^(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/i
 const PATH_REGEX = /^(\/[^\s\/]+)+$/i
@@ -27,7 +38,9 @@ const trimIfExists = str => {
   return str
 }
 
-// NOTE: Remember to keep the validations below in sync with the client side validatinos in Rule.elm.
+// Here we define the structure of the model.
+//
+// NOTE: This has to be manually synced with the schema.
 const Rule = sequelize.define(
   "rule",
   {
@@ -141,7 +154,6 @@ async function createRule(rule, user) {
 }
 
 async function updateRule(ruleId, rule, user) {
-  //TODO: Set updatedAt
   const res = await Rule.update(
     {
       ...rule,
@@ -155,7 +167,11 @@ async function updateRule(ruleId, rule, user) {
     }
   )
 
-  return res[1][0] //todo safeguard against this not existing
+  try {
+    return res[1][0]
+  } catch (err) {
+    return undefined
+  }
 }
 
 async function deleteRule(ruleId) {

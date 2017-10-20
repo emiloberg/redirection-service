@@ -7,6 +7,7 @@ const CONFIG = require("./config")
 
 const router = new Router()
 
+// static assets
 const indexHtml = fs
   .readFileSync(path.join(__dirname, "../client/index.html"))
   .toString()
@@ -15,6 +16,7 @@ const elmJs = fs
   .toString()
 const logoSvg = fs.readFileSync(path.join(__dirname, "./logo.svg")).toString()
 
+// Route helpers
 const handleValidationError = (ctx, error) => {
   if (
     error.name == "SequelizeValidationError" ||
@@ -27,20 +29,7 @@ const handleValidationError = (ctx, error) => {
   }
 }
 
-router.get("/client.js", async ctx => {
-  ctx.body = elmJs
-})
-
-router.get("/logo.svg", async ctx => {
-  ctx.body = logoSvg
-  ctx.type = "image/svg+xml"
-})
-
-router.get("/logout", async ctx => {
-  ctx.logout()
-  ctx.redirect("/")
-})
-
+// Authentication routes
 router.get(
   CONFIG.LOGIN_URL,
   passport.authenticate("google", { scope: ["profile", "email"] })
@@ -55,17 +44,40 @@ router.get(
   async ctx => ctx.redirect("/")
 )
 
+router.get("/logout", async ctx => {
+  ctx.logout()
+  ctx.redirect("/")
+})
+
+// Asset routes
 router.get("/", async ctx => {
   ctx.body = indexHtml
 })
 
+router.get("/client.js", async ctx => {
+  ctx.body = elmJs
+})
+
+router.get("/logo.svg", async ctx => {
+  ctx.body = logoSvg
+  ctx.type = "image/svg+xml"
+})
+
+// rule routes
 router.put("/rules/:id", async ctx => {
   try {
-    ctx.body = await db.updateRule(
+    const updatedRule = await db.updateRule(
       ctx.params.id,
       ctx.request.body,
       ctx.state.user.emails[0].value
     )
+
+    if (updatedRule) {
+      ctx.body = updatedRule
+    } else {
+      ctx.status = 400
+      ctx.body = "No such rule exist to be updated."
+    }
   } catch (e) {
     handleValidationError(ctx, e)
   }
