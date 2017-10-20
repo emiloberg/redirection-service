@@ -112,9 +112,6 @@ const Rule = sequelize.define(
         len: {
           args: [20],
           msg: "Please elaborate on the purpose of the rule."
-        },
-        asdf() {
-          console.log("Why:", this.why)
         }
       }
     },
