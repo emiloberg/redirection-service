@@ -49,7 +49,6 @@
     "chokidar-cli": "^1.2.0",
     "elm": "^0.18.0",
     "elm-live": "^2.7.5",
-    "express": "^4.15.5",
     "koa": "^2.3.0",
     "koa-bodyparser": "^4.2.0",
     "koa-morgan": "^1.0.1",
