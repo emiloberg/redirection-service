@@ -109,7 +109,7 @@ Expert rules are for advanced path matching and bulk operations and should be us
 
 ##### Matches using Regex
 
-Expert rules use a javascript regex syntax to match incoming rules
+Expert rules use a javascript regex syntax to match incoming rules. Start and end of string anchors (^ and $) are automatically added to the regex and must not be added manually.
 
 Given the following rule:
 
