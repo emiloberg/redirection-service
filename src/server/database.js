@@ -29,6 +29,8 @@ const sequelize = new Sequelize(
 const URI_REGEX = /^(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/i
 const PATH_REGEX = /^(\/[^\s\/]+)+$/i
 const COUNTRY_TOKEN_REGEX = /\{country\}/gi
+const BEGINS_WITH_CARET_REGEX = /^\^/i
+const ENDS_WITH_DOLLAR_SIGN_REGEX = /\$$/i
 
 const trimIfExists = str => {
   if (str && typeof str === "string") {
@@ -54,6 +56,14 @@ const Rule = sequelize.define(
         },
         path(value) {
           if (this.isRegex) {
+            if (BEGINS_WITH_CARET_REGEX.test(value)) {
+              throw new Error('"From" must not begin with a caret (^).')
+            }
+
+            if (ENDS_WITH_DOLLAR_SIGN_REGEX.test(value)) {
+              throw new Error('"From" must not end with a dollar sign ($).')
+            }
+
             return
           }
 
@@ -77,6 +87,14 @@ const Rule = sequelize.define(
       validate: {
         pathOrUri(value) {
           if (this.isRegex) {
+            if (BEGINS_WITH_CARET_REGEX.test(value)) {
+              throw new Error('"To" must not begin with a caret (^).')
+            }
+
+            if (ENDS_WITH_DOLLAR_SIGN_REGEX.test(value)) {
+              throw new Error('"To" must not end with a dollar sign ($).')
+            }
+
             return
           }
 
