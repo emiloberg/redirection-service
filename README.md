@@ -1,5 +1,7 @@
 # Redirection Service
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/iZettle/redirection-service.svg)](https://greenkeeper.io/)
+
 A basic microservice for managing redirection rules, written in Elm and Koa.
 
 
