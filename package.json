@@ -23,7 +23,8 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "8.9.0"
+    "node": "^8.9.3",
+    "yarn": "^1.3.2"
   },
   "scripts": {
     "postinstall": "elm package install -y",
