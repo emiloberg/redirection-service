@@ -11,7 +11,7 @@ passport.use(
       callbackURL: CONFIG.GOOGLE_REDIRECT_URI
     },
     (accessToken, refreshToken, profile, done) => {
-      if (!profile.emails.some(email => email.value.endsWith("izettle.com"))) {
+      if (!profile.emails.some(email => email.value.endsWith("@izettle.com"))) {
         done(new Error("Not the correct domain."))
         return
       }
